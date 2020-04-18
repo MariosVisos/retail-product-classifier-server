@@ -37,6 +37,7 @@ class Shelve(Resource):
 
     def put(self, title):
         # Only labels argument is accepted for update
+        # this can be added in the class itself
         parser = reqparse.RequestParser()
         parser.add_argument(
             'labels',
