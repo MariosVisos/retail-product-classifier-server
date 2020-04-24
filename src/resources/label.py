@@ -21,14 +21,16 @@ class Label(Resource):
     # Uncomment the @jwt decorators for using them only for logged in users
 
     # @jwt_required  # No longer needs brackets
-    def get(self, name: str):
+    @classmethod
+    def get(cls, name: str):
         label = LabelModel.find_by_name(name)
         if label:
             return label.json(), 200
         return {"message": "Label not found."}, 404
 
     # @fresh_jwt_required
-    def post(self, name: str):
+    @classmethod
+    def post(cls, name: str):
         if LabelModel.find_by_name(name):
             return (
                 {"message": "An label with name '{}' already exists.".format(
@@ -47,8 +49,9 @@ class Label(Resource):
 
         return label.json(), 201
 
+    @classmethod
     @jwt_required
-    def delete(self, name: str):
+    def delete(cls, name: str):
         # Uncomment the following for allowing only admins to delete
         # claims = get_jwt_claims()
         # if not claims["is_admin"]:
@@ -60,7 +63,8 @@ class Label(Resource):
             return {"message": "Label deleted."}, 200
         return {"message": "Label not found."}, 404
 
-    def put(self, name: str):
+    @classmethod
+    def put(cls, name: str):
         data = Label.parser.parse_args()
 
         label = LabelModel.find_by_name(name)
@@ -77,7 +81,8 @@ class Label(Resource):
 
 class LabelList(Resource):
     # @jwt_optional
-    def get(self):
+    @classmethod
+    def get(cls):
         """
         Here we get the JWT identity, and then if the user is logged in (we were able to get an identity)
         we return the entire label list.

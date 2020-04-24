@@ -3,13 +3,15 @@ from models.dataset import DatasetModel
 
 
 class Dataset(Resource):
-    def get(self, name: str):
+    @classmethod
+    def get(cls, name: str):
         dataset = DatasetModel.find_by_name(name)
         if dataset:
             return dataset.json()
         return {"message": "Dataset not found."}, 404
 
-    def post(self, name: str):
+    @classmethod
+    def post(cls, name: str):
         if DatasetModel.find_by_name(name):
             return (
                 {"message": "A dataset with name '{}' already exists.".format(
@@ -25,7 +27,8 @@ class Dataset(Resource):
 
         return dataset.json(), 201
 
-    def delete(self, name: str):
+    @classmethod
+    def delete(cls, name: str):
         dataset = DatasetModel.find_by_name(name)
         if dataset:
             dataset.delete_from_db()
@@ -34,5 +37,6 @@ class Dataset(Resource):
 
 
 class DatasetList(Resource):
-    def get(self):
+    @classmethod
+    def get(cls):
         return {"datasets": [x.json() for x in DatasetModel.find_all()]}

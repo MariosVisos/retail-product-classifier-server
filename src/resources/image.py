@@ -21,14 +21,16 @@ class Image(Resource):
     # Uncomment the @jwt decorators for using them only for logged in users
 
     # @jwt_required  # No longer needs brackets
-    def get(self, name: str):
+    @classmethod
+    def get(cls, name: str):
         image = ImageModel.find_by_name(name)
         if image:
             return image.json(), 200
         return {"message": "Image not found."}, 404
 
     # @fresh_jwt_required
-    def post(self, name: str):
+    @classmethod
+    def post(cls, name: str):
         if ImageModel.find_by_name(name):
             return (
                 {"message": "An image with name '{}' already exists.".format(
@@ -47,8 +49,9 @@ class Image(Resource):
 
         return image.json(), 201
 
+    @classmethod
     @jwt_required
-    def delete(self, name: str):
+    def delete(cls, name: str):
         # Uncomment the following for allowing only admins to delete
         # claims = get_jwt_claims()
         # if not claims["is_admin"]:
@@ -60,7 +63,8 @@ class Image(Resource):
             return {"message": "Image deleted."}, 200
         return {"message": "Image not found."}, 404
 
-    def put(self, name: str):
+    @classmethod
+    def put(cls, name: str):
         data = Image.parser.parse_args()
 
         image = ImageModel.find_by_name(name)
@@ -77,7 +81,8 @@ class Image(Resource):
 
 class ImageList(Resource):
     # @jwt_optional
-    def get(self):
+    @classmethod
+    def get(cls):
         """
         Here we get the JWT identity, and then if the user is logged in (we were able to get an identity)
         we return the entire image list.
