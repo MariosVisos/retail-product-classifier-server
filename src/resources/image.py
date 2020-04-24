@@ -1,9 +1,9 @@
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import (
     jwt_required,
-    get_jwt_claims,
-    get_jwt_identity,
-    jwt_optional,
+    # get_jwt_claims,
+    # get_jwt_identity,
+    # jwt_optional,
     fresh_jwt_required,
 )
 from models.image import ImageModel
@@ -18,14 +18,16 @@ class Image(Resource):
         "label_id", type=int, required=True, help="Every image needs a label_id."
     )
 
-    @jwt_required  # No longer needs brackets
+    # Uncomment the @jwt decorators for using them only for logged in users
+
+    # @jwt_required  # No longer needs brackets
     def get(self, name):
         image = ImageModel.find_by_name(name)
         if image:
             return image.json(), 200
         return {"message": "Image not found."}, 404
 
-    @fresh_jwt_required
+    # @fresh_jwt_required
     def post(self, name):
         if ImageModel.find_by_name(name):
             return (
@@ -47,9 +49,10 @@ class Image(Resource):
 
     @jwt_required
     def delete(self, name):
-        claims = get_jwt_claims()
-        if not claims["is_admin"]:
-            return {"message": "Admin privilege required."}, 401
+        # Uncomment the following for allowing only admins to delete
+        # claims = get_jwt_claims()
+        # if not claims["is_admin"]:
+        #     return {"message": "Admin privilege required."}, 401
 
         image = ImageModel.find_by_name(name)
         if image:
@@ -73,7 +76,7 @@ class Image(Resource):
 
 
 class ImageList(Resource):
-    @jwt_optional
+    # @jwt_optional
     def get(self):
         """
         Here we get the JWT identity, and then if the user is logged in (we were able to get an identity)
@@ -84,14 +87,14 @@ class ImageList(Resource):
         This could be done with e.g. see orders that have been placed, but not see details about the orders
         unless the user has logged in.
         """
-        user_id = get_jwt_identity()
+        # user_id = get_jwt_identity()
         images = [image.json() for image in ImageModel.find_all()]
-        if user_id:
-            return {"images": images}, 200
-        return (
-            {
-                "images": [image["name"] for image in images],
-                "message": "More data available if you log in.",
-            },
-            200,
-        )
+        # if user_id:
+        return {"images": images}, 200
+        # return (
+        #     {
+        #         "images": [image["name"] for image in images],
+        #         "message": "More data available if you log in.",
+        #     },
+        #     200,
+        # )

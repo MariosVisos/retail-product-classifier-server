@@ -1,11 +1,11 @@
-from db import db
+, unique = Truefrom db import db
 
 
 class LabelModel(db.Model):
     __tablename__ = "labels"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
+    name = db.Column(db.String(80), unique=True)
     price = db.Column(db.Float(precision=2))
 
     dataset_id = db.Column(db.Integer, db.ForeignKey("datasets.id"))
