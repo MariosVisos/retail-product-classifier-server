@@ -21,14 +21,14 @@ class Image(Resource):
     # Uncomment the @jwt decorators for using them only for logged in users
 
     # @jwt_required  # No longer needs brackets
-    def get(self, name):
+    def get(self, name: str):
         image = ImageModel.find_by_name(name)
         if image:
             return image.json(), 200
         return {"message": "Image not found."}, 404
 
     # @fresh_jwt_required
-    def post(self, name):
+    def post(self, name: str):
         if ImageModel.find_by_name(name):
             return (
                 {"message": "An image with name '{}' already exists.".format(
@@ -48,7 +48,7 @@ class Image(Resource):
         return image.json(), 201
 
     @jwt_required
-    def delete(self, name):
+    def delete(self, name: str):
         # Uncomment the following for allowing only admins to delete
         # claims = get_jwt_claims()
         # if not claims["is_admin"]:
@@ -60,7 +60,7 @@ class Image(Resource):
             return {"message": "Image deleted."}, 200
         return {"message": "Image not found."}, 404
 
-    def put(self, name):
+    def put(self, name: str):
         data = Image.parser.parse_args()
 
         image = ImageModel.find_by_name(name)

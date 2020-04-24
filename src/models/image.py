@@ -1,3 +1,4 @@
+from typing import Dict, List
 from db import db
 
 
@@ -11,12 +12,12 @@ class ImageModel(db.Model):
     label_id = db.Column(db.Integer, db.ForeignKey("labels.id"))
     label = db.relationship("LabelModel")
 
-    def __init__(self, name, price, label_id):
+    def __init__(self, name: str, price: float, label_id: int):
         self.name = name
         self.price = price
         self.label_id = label_id
 
-    def json(self):
+    def json(self) -> dict:
         return {
             "id": self.id,
             "name": self.name,
@@ -25,17 +26,17 @@ class ImageModel(db.Model):
         }
 
     @classmethod
-    def find_by_name(cls, name):
+    def find_by_name(cls, name: str):
         return cls.query.filter_by(name=name).first()
 
     @classmethod
-    def find_all(cls):
+    def find_all(cls) -> List:
         return cls.query.all()
 
-    def save_to_db(self):
+    def save_to_db(self) -> None:
         db.session.add(self)
         db.session.commit()
 
-    def delete_from_db(self):
+    def delete_from_db(self) -> None:
         db.session.delete(self)
         db.session.commit()

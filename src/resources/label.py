@@ -21,14 +21,14 @@ class Label(Resource):
     # Uncomment the @jwt decorators for using them only for logged in users
 
     # @jwt_required  # No longer needs brackets
-    def get(self, name):
+    def get(self, name: str):
         label = LabelModel.find_by_name(name)
         if label:
             return label.json(), 200
         return {"message": "Label not found."}, 404
 
     # @fresh_jwt_required
-    def post(self, name):
+    def post(self, name: str):
         if LabelModel.find_by_name(name):
             return (
                 {"message": "An label with name '{}' already exists.".format(
@@ -48,7 +48,7 @@ class Label(Resource):
         return label.json(), 201
 
     @jwt_required
-    def delete(self, name):
+    def delete(self, name: str):
         # Uncomment the following for allowing only admins to delete
         # claims = get_jwt_claims()
         # if not claims["is_admin"]:
@@ -60,7 +60,7 @@ class Label(Resource):
             return {"message": "Label deleted."}, 200
         return {"message": "Label not found."}, 404
 
-    def put(self, name):
+    def put(self, name: str):
         data = Label.parser.parse_args()
 
         label = LabelModel.find_by_name(name)

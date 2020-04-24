@@ -3,13 +3,13 @@ from models.dataset import DatasetModel
 
 
 class Dataset(Resource):
-    def get(self, name):
+    def get(self, name: str):
         dataset = DatasetModel.find_by_name(name)
         if dataset:
             return dataset.json()
         return {"message": "Dataset not found."}, 404
 
-    def post(self, name):
+    def post(self, name: str):
         if DatasetModel.find_by_name(name):
             return (
                 {"message": "A dataset with name '{}' already exists.".format(
@@ -25,7 +25,7 @@ class Dataset(Resource):
 
         return dataset.json(), 201
 
-    def delete(self, name):
+    def delete(self, name: str):
         dataset = DatasetModel.find_by_name(name)
         if dataset:
             dataset.delete_from_db()
