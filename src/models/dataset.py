@@ -24,7 +24,7 @@ class DatasetModel(db.Model):
         }
 
     @classmethod
-    def find_by_name(cls, name: str):
+    def find_by_name(cls, name: str) -> "DatasetModel":
         return cls.query.filter_by(name=name).first()
 
     @classmethod
