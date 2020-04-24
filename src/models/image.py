@@ -1,5 +1,7 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 from db import db
+
+ImageJSON = Dict[str, Union[int, str, float]]
 
 
 class ImageModel(db.Model):
@@ -17,7 +19,7 @@ class ImageModel(db.Model):
         self.price = price
         self.label_id = label_id
 
-    def json(self) -> dict:
+    def json(self) -> ImageJSON:
         return {
             "id": self.id,
             "name": self.name,

@@ -1,5 +1,8 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 from db import db
+from models.label import LabelJSON
+
+DatasetJSON = Dict[str, Union[int, str, List[LabelJSON]]]
 
 
 class DatasetModel(db.Model):
@@ -13,7 +16,7 @@ class DatasetModel(db.Model):
     def __init__(self, name: str):
         self.name = name
 
-    def json(self) -> Dict:
+    def json(self) -> DatasetJSON:
         return {
             "id": self.id,
             "name": self.name,
