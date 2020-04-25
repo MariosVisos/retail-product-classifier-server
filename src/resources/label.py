@@ -8,14 +8,20 @@ from flask_jwt_extended import (
 )
 from models.label import LabelModel
 
+BLANK_ERROR = "'{}' cannot be blank."
+NAME_ALREADY_EXISTS = "A label with name '{}' already exists."
+ERROR_INSERTING = "An error occurred while inserting the label."
+LABEL_NOT_FOUND = "Label not found."
+LABEL_DELETED = "Label deleted."
+
 
 class Label(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument(
-        "price", type=float, required=True, help="This field cannot be left blank!"
+        "price", type=float, required=True, help=BLANK_ERROR.format("price")
     )
     parser.add_argument(
-        "dataset_id", type=int, required=True, help="Every label needs a dataset_id."
+        "dataset_id", type=int, required=True, help=BLANK_ERROR.format("dataset_id")
     )
 
     # Uncomment the @jwt decorators for using them only for logged in users
@@ -26,17 +32,13 @@ class Label(Resource):
         label = LabelModel.find_by_name(name)
         if label:
             return label.json(), 200
-        return {"message": "Label not found."}, 404
+        return {"message": LABEL_NOT_FOUND}, 404
 
     # @fresh_jwt_required
     @classmethod
     def post(cls, name: str):
         if LabelModel.find_by_name(name):
-            return (
-                {"message": "An label with name '{}' already exists.".format(
-                    name)},
-                400,
-            )
+            return {"message": NAME_ALREADY_EXISTS.format(name)}, 400,
 
         data = Label.parser.parse_args()
 
@@ -45,7 +47,7 @@ class Label(Resource):
         try:
             label.save_to_db()
         except:
-            return {"message": "An error occurred while inserting the label."}, 500
+            return {"message": ERROR_INSERTING}, 500
 
         return label.json(), 201
 
@@ -60,8 +62,8 @@ class Label(Resource):
         label = LabelModel.find_by_name(name)
         if label:
             label.delete_from_db()
-            return {"message": "Label deleted."}, 200
-        return {"message": "Label not found."}, 404
+            return {"message": LABEL_DELETED}, 200
+        return {"message": LABEL_NOT_FOUND}, 404
 
     @classmethod
     def put(cls, name: str):

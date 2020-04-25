@@ -8,14 +8,20 @@ from flask_jwt_extended import (
 )
 from models.image import ImageModel
 
+BLANK_ERROR = "'{}' cannot be blank."
+NAME_ALREADY_EXISTS = "An image with name '{}' already exists."
+ERROR_INSERTING = "An error occurred while inserting the image."
+IMAGE_NOT_FOUND = "Image not found."
+IMAGE_DELETED = "Image deleted."
+
 
 class Image(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument(
-        "price", type=float, required=True, help="This field cannot be left blank!"
+        "price", type=float, required=True, help=BLANK_ERROR.format("price")
     )
     parser.add_argument(
-        "label_id", type=int, required=True, help="Every image needs a label_id."
+        "label_id", type=int, required=True, help=BLANK_ERROR.format("label_id")
     )
 
     # Uncomment the @jwt decorators for using them only for logged in users
@@ -32,11 +38,7 @@ class Image(Resource):
     @classmethod
     def post(cls, name: str):
         if ImageModel.find_by_name(name):
-            return (
-                {"message": "An image with name '{}' already exists.".format(
-                    name)},
-                400,
-            )
+            return {"message": NAME_ALREADY_EXISTS.format(name)}, 400,
 
         data = Image.parser.parse_args()
 
@@ -45,7 +47,7 @@ class Image(Resource):
         try:
             image.save_to_db()
         except:
-            return {"message": "An error occurred while inserting the image."}, 500
+            return {"message": ERROR_INSERTING}, 500
 
         return image.json(), 201
 
@@ -60,8 +62,8 @@ class Image(Resource):
         image = ImageModel.find_by_name(name)
         if image:
             image.delete_from_db()
-            return {"message": "Image deleted."}, 200
-        return {"message": "Image not found."}, 404
+            return {"message": IMAGE_DELETED}, 200
+        return {"message": IMAGE_NOT_FOUND}, 404
 
     @classmethod
     def put(cls, name: str):
