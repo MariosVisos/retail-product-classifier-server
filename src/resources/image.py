@@ -1,107 +1,125 @@
-from flask_restful import Resource, reqparse
-from flask_jwt_extended import (
-    jwt_required,
-    # get_jwt_claims,
-    # get_jwt_identity,
-    # jwt_optional,
-    fresh_jwt_required,
-)
-from models.image import ImageModel
+from flask_restful import Resource
+from flask_uploads import UploadNotAllowed
+from flask import send_file, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
+import traceback
+import os
 
-BLANK_ERROR = "'{}' cannot be blank."
-NAME_ALREADY_EXISTS = "An image with name '{}' already exists."
-ERROR_INSERTING = "An error occurred while inserting the image."
-IMAGE_NOT_FOUND = "Image not found."
-IMAGE_DELETED = "Image deleted."
+from libs import image_helper
+from libs.strings import gettext
+from schemas.image import ImageSchema
+
+image_schema = ImageSchema()
+
+IMAGE_UPLOADED = "Image '{}' uploaded"
+IMAGE_ILLEGAL_EXTENSION = "The extension '{}' is not allowed"
+
+
+class ImageUpload(Resource):
+    @jwt_required
+    def post(self):
+        """
+        This endpoint is used to upload an image file. It uses the
+        JWT to retrieve user information and save the image in the user's folder.
+        If a file with the same name exists in the user's folder, name conflicts
+        will be automatically resolved by appending a underscore and a smallest
+        unused integer. (eg. filename.png to filename_1.png).
+        """
+        data = image_schema.load(request.files)
+        user_id = get_jwt_identity()
+        folder = f"user_{user_id}"  # static/images/user_1
+        try:
+            # save(self, storage, folder=None, name=None)
+            image_path = image_helper.save_image(data["image"], folder=folder)
+            # here we only return the basename of the image and hide the internal folder structure from our user
+            basename = image_helper.get_basename(image_path)
+            return {"message": IMAGE_UPLOADED.format(basename)}, 201
+        except UploadNotAllowed:  # forbidden file type
+            extension = image_helper.get_extension(data["image"])
+            return {"message": IMAGE_ILLEGAL_EXTENSION.format(extension)}, 400
 
 
 class Image(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument(
-        "price", type=float, required=True, help=BLANK_ERROR.format("price")
-    )
-    parser.add_argument(
-        "label_id", type=int, required=True, help=BLANK_ERROR.format("label_id")
-    )
+    @jwt_required
+    def get(self, filename: str):
+        """
+        This endpoint returns the requested image if exists. It will use JWT to
+        retrieve user information and look for the image inside the user's folder.
+        """
+        user_id = get_jwt_identity()
+        folder = f"user_{user_id}"
+        # check if filename is URL secure
+        if not image_helper.is_filename_safe(filename):
+            return {"message": gettext("image_illegal_file_name").format(filename)}, 400
+        try:
+            # try to send the requested file to the user with status code 200
+            return send_file(image_helper.get_path(filename, folder=folder))
+        except FileNotFoundError:
+            return {"message": gettext("image_not_found").format(filename)}, 404
 
-    # Uncomment the @jwt decorators for using them only for logged in users
+    @jwt_required
+    def delete(self, filename: str):
+        """
+        This endpoint is used to delete the requested image under the user's folder.
+        It uses the JWT to retrieve user information.
+        """
+        user_id = get_jwt_identity()
+        folder = f"user_{user_id}"
 
-    # @jwt_required  # No longer needs brackets
-    @classmethod
-    def get(cls, name: str):
-        image = ImageModel.find_by_name(name)
-        if image:
-            return image.json(), 200
-        return {"message": "Image not found."}, 404
-
-    # @fresh_jwt_required
-    @classmethod
-    def post(cls, name: str):
-        if ImageModel.find_by_name(name):
-            return {"message": NAME_ALREADY_EXISTS.format(name)}, 400,
-
-        data = Image.parser.parse_args()
-
-        image = ImageModel(name, **data)
+        # check if filename is URL secure
+        if not image_helper.is_filename_safe(filename):
+            return {"message": gettext("image_illegal_file_name").format(filename)}, 400
 
         try:
-            image.save_to_db()
+            os.remove(image_helper.get_path(filename, folder=folder))
+            return {"message": gettext("image_deleted").format(filename)}, 200
+        except FileNotFoundError:
+            return {"message": gettext("image_not_found").format(filename)}, 404
         except:
-            return {"message": ERROR_INSERTING}, 500
+            traceback.print_exc()
+            return {"message": gettext("image_delete_failed")}, 500
 
-        return image.json(), 201
 
-    @classmethod
+class AvatarUpload(Resource):
     @jwt_required
-    def delete(cls, name: str):
-        # Uncomment the following for allowing only admins to delete
-        # claims = get_jwt_claims()
-        # if not claims["is_admin"]:
-        #     return {"message": "Admin privilege required."}, 401
-
-        image = ImageModel.find_by_name(name)
-        if image:
-            image.delete_from_db()
-            return {"message": IMAGE_DELETED}, 200
-        return {"message": IMAGE_NOT_FOUND}, 404
-
-    @classmethod
-    def put(cls, name: str):
-        data = Image.parser.parse_args()
-
-        image = ImageModel.find_by_name(name)
-
-        if image:
-            image.price = data["price"]
-        else:
-            image = ImageModel(name, **data)
-
-        image.save_to_db()
-
-        return image.json(), 200
-
-
-class ImageList(Resource):
-    # @jwt_optional
-    @classmethod
-    def get(cls):
+    def put(self):
         """
-        Here we get the JWT identity, and then if the user is logged in (we were able to get an identity)
-        we return the entire image list.
-
-        Otherwise we just return the image names.
-
-        This could be done with e.g. see orders that have been placed, but not see details about the orders
-        unless the user has logged in.
+        This endpoint is used to upload user avatar. All avatars are named after the user's id
+        in such format: user_{id}.{ext}.
+        It will overwrite the existing avatar.
         """
-        # user_id = get_jwt_identity()
-        images = [image.json() for image in ImageModel.find_all()]
-        # if user_id:
-        return {"images": images}, 200
-        # return (
-        #     {
-        #         "images": [image["name"] for image in images],
-        #         "message": "More data available if you log in.",
-        #     },
-        #     200,
-        # )
+        data = image_schema.load(request.files)
+        filename = f"user_{get_jwt_identity()}"
+        folder = "avatars"
+        avatar_path = image_helper.find_image_any_format(filename, folder)
+        if avatar_path:
+            try:
+                os.remove(avatar_path)
+            except:
+                return {"message": gettext("avatar_delete_failed")}, 500
+
+        try:
+            ext = image_helper.get_extension(data["image"].filename)
+            avatar = filename + ext  # use our naming format + true extension
+            avatar_path = image_helper.save_image(
+                data["image"], folder=folder, name=avatar
+            )
+            basename = image_helper.get_basename(avatar_path)
+            return {"message": gettext("avatar_uploaded").format(basename)}, 200
+        except UploadNotAllowed:  # forbidden file type
+            extension = image_helper.get_extension(data["image"])
+            return {"message": gettext("image_illegal_extension").format(extension)}, 400
+
+
+class Avatar(Resource):
+    @classmethod
+    def get(cls, user_id: int):
+        """
+        This endpoint returns the avatar of the user specified by user_id.
+        """
+        folder = "avatars"
+        filename = f"user_{user_id}"
+        avatar = image_helper.find_image_any_format(filename, folder)
+        if avatar:
+            return send_file(avatar)
+        return {"message": gettext("avatar_not_found")}, 404

@@ -8,7 +8,7 @@ from db import db
 from blacklist import BLACKLIST
 from resources.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
 from resources.label import Label, LabelList
-from resources.image import Image, ImageList
+from resources.photo import Photo, PhotoList
 from resources.dataset import Dataset, DatasetList
 
 app = Flask(__name__)
@@ -105,8 +105,8 @@ api.add_resource(Dataset, "/dataset/<string:name>")
 api.add_resource(DatasetList, "/datasets")
 api.add_resource(Label, "/label/<string:name>")
 api.add_resource(LabelList, "/labels")
-api.add_resource(Image, "/image/<string:name>")
-api.add_resource(ImageList, "/images")
+api.add_resource(Photo, "/photo/<string:name>")
+api.add_resource(PhotoList, "/photos")
 api.add_resource(UserRegister, "/register")
 api.add_resource(User, "/user/<int:user_id>")
 api.add_resource(UserLogin, "/login")

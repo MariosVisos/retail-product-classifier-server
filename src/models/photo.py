@@ -1,11 +1,11 @@
 from typing import Dict, List, Union
 from db import db
 
-ImageJSON = Dict[str, Union[int, str, float]]
+PhotoJSON = Dict[str, Union[int, str, float]]
 
 
-class ImageModel(db.Model):
-    __tablename__ = "images"
+class PhotoModel(db.Model):
+    __tablename__ = "photos"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
@@ -19,7 +19,7 @@ class ImageModel(db.Model):
         self.price = price
         self.label_id = label_id
 
-    def json(self) -> ImageJSON:
+    def json(self) -> PhotoJSON:
         return {
             "id": self.id,
             "name": self.name,
@@ -28,11 +28,11 @@ class ImageModel(db.Model):
         }
 
     @classmethod
-    def find_by_name(cls, name: str) -> "ImageModel":
+    def find_by_name(cls, name: str) -> "PhotoModel":
         return cls.query.filter_by(name=name).first()
 
     @classmethod
-    def find_all(cls) -> List["ImageModel"]:
+    def find_all(cls) -> List["PhotoModel"]:
         return cls.query.all()
 
     def save_to_db(self) -> None:
