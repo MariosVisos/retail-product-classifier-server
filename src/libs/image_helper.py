@@ -24,11 +24,11 @@ def find_image_any_format(filename: str, folder: str) -> Union[str, None]:
     :param folder: the relative folder in which to search
     :return: the path of the image if exists, otherwise None
     """
-    for _format in IMAGES:  # look for existing avatar and delete it
-        avatar = f"{filename}.{_format}"
-        avatar_path = IMAGE_SET.path(filename=avatar, folder=folder)
-        if os.path.isfile(avatar_path):
-            return avatar_path
+    for _format in IMAGES:  # look for existing image and delete it
+        image = f"{filename}.{_format}"
+        image_path = IMAGE_SET.path(filename=image, folder=folder)
+        if os.path.isfile(image_path):
+            return image_path
     return None
 
 

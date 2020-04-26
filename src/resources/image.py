@@ -6,13 +6,15 @@ import traceback
 import os
 
 from libs import image_helper
-from libs.strings import gettext
 from schemas.image import ImageSchema
 
 image_schema = ImageSchema()
 
 IMAGE_UPLOADED = "Image '{}' uploaded"
 IMAGE_ILLEGAL_EXTENSION = "The extension '{}' is not allowed"
+IMAGE_ILLEGAL_FILENAME = "The filename '{}' is not allowed"
+IMAGE_NOT_FOUND = "The IMAGE '{}' is not found"
+IMAGE_DELETE_FAILED = "Failed deleting the image"
 
 
 class ImageUpload(Resource):
@@ -50,12 +52,12 @@ class Image(Resource):
         folder = f"user_{user_id}"
         # check if filename is URL secure
         if not image_helper.is_filename_safe(filename):
-            return {"message": gettext("image_illegal_file_name").format(filename)}, 400
+            return {"message": IMAGE_ILLEGAL_FILENAME.format(filename)}, 400
         try:
             # try to send the requested file to the user with status code 200
             return send_file(image_helper.get_path(filename, folder=folder))
         except FileNotFoundError:
-            return {"message": gettext("image_not_found").format(filename)}, 404
+            return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
 
     @jwt_required
     def delete(self, filename: str):
@@ -68,58 +70,58 @@ class Image(Resource):
 
         # check if filename is URL secure
         if not image_helper.is_filename_safe(filename):
-            return {"message": gettext("image_illegal_file_name").format(filename)}, 400
+            return {"message": IMAGE_ILLEGAL_FILENAME.format(filename)}, 400
 
         try:
             os.remove(image_helper.get_path(filename, folder=folder))
-            return {"message": gettext("image_deleted").format(filename)}, 200
+            return {"message": IMAGE_DELETED.format(filename)}, 200
         except FileNotFoundError:
-            return {"message": gettext("image_not_found").format(filename)}, 404
+            return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
         except:
             traceback.print_exc()
-            return {"message": gettext("image_delete_failed")}, 500
+            return {"message": IMAGE_DELETE_FAILED}, 500
 
 
-class AvatarUpload(Resource):
-    @jwt_required
-    def put(self):
-        """
-        This endpoint is used to upload user avatar. All avatars are named after the user's id
-        in such format: user_{id}.{ext}.
-        It will overwrite the existing avatar.
-        """
-        data = image_schema.load(request.files)
-        filename = f"user_{get_jwt_identity()}"
-        folder = "avatars"
-        avatar_path = image_helper.find_image_any_format(filename, folder)
-        if avatar_path:
-            try:
-                os.remove(avatar_path)
-            except:
-                return {"message": gettext("avatar_delete_failed")}, 500
+# class AvatarUpload(Resource):
+#     @jwt_required
+#     def put(self):
+#         """
+#         This endpoint is used to upload user avatar. All avatars are named after the user's id
+#         in such format: user_{id}.{ext}.
+#         It will overwrite the existing avatar.
+#         """
+#         data = image_schema.load(request.files)
+#         filename = f"user_{get_jwt_identity()}"
+#         folder = "avatars"
+#         avatar_path = image_helper.find_image_any_format(filename, folder)
+#         if avatar_path:
+#             try:
+#                 os.remove(avatar_path)
+#             except:
+#                 return {"message": gettext("avatar_delete_failed")}, 500
 
-        try:
-            ext = image_helper.get_extension(data["image"].filename)
-            avatar = filename + ext  # use our naming format + true extension
-            avatar_path = image_helper.save_image(
-                data["image"], folder=folder, name=avatar
-            )
-            basename = image_helper.get_basename(avatar_path)
-            return {"message": gettext("avatar_uploaded").format(basename)}, 200
-        except UploadNotAllowed:  # forbidden file type
-            extension = image_helper.get_extension(data["image"])
-            return {"message": gettext("image_illegal_extension").format(extension)}, 400
+#         try:
+#             ext = image_helper.get_extension(data["image"].filename)
+#             avatar = filename + ext  # use our naming format + true extension
+#             avatar_path = image_helper.save_image(
+#                 data["image"], folder=folder, name=avatar
+#             )
+#             basename = image_helper.get_basename(avatar_path)
+#             return {"message": gettext("avatar_uploaded").format(basename)}, 200
+#         except UploadNotAllowed:  # forbidden file type
+#             extension = image_helper.get_extension(data["image"])
+#             return {"message": gettext("image_illegal_extension").format(extension)}, 400
 
 
-class Avatar(Resource):
-    @classmethod
-    def get(cls, user_id: int):
-        """
-        This endpoint returns the avatar of the user specified by user_id.
-        """
-        folder = "avatars"
-        filename = f"user_{user_id}"
-        avatar = image_helper.find_image_any_format(filename, folder)
-        if avatar:
-            return send_file(avatar)
-        return {"message": gettext("avatar_not_found")}, 404
+# class Avatar(Resource):
+#     @classmethod
+#     def get(cls, user_id: int):
+#         """
+#         This endpoint returns the avatar of the user specified by user_id.
+#         """
+#         folder = "avatars"
+#         filename = f"user_{user_id}"
+#         avatar = image_helper.find_image_any_format(filename, folder)
+#         if avatar:
+#             return send_file(avatar)
+#         return {"message": gettext("avatar_not_found")}, 404
