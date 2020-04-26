@@ -28,6 +28,8 @@ class ImageUpload(Resource):
         unused integer. (eg. filename.png to filename_1.png).
         """
         data = image_schema.load(request.files)
+        metadata = request.form.get("metadata")
+
         user_id = get_jwt_identity()
         folder = f"user_{user_id}"  # static/images/user_1
         try:

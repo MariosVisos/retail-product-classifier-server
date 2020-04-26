@@ -8,7 +8,7 @@ from flask_uploads import UploadSet, IMAGES
 IMAGE_SET = UploadSet("images", IMAGES)  # set name and allowed extensions
 
 
-def save_image(image: FileStorage, folder: str = None, name: str = None) -> str:
+def save_image(image: FileStorage, folder: str = None, name: str = None):
     return IMAGE_SET.save(image, folder, name)
 
 
@@ -18,8 +18,8 @@ def get_path(filename: str = None, folder: str = None) -> str:
 
 def find_image_any_format(filename: str, folder: str) -> Union[str, None]:
     """
-    Given a format-less filename, try to find the file by appending each of the allowed formats to the given
-    filename and check if the file exists
+    Given a format-less filename, try to find the file by appending each
+    of the allowed formats to the given filename and check if the file exists
     :param filename: formatless filename
     :param folder: the relative folder in which to search
     :return: the path of the image if exists, otherwise None
@@ -34,7 +34,8 @@ def find_image_any_format(filename: str, folder: str) -> Union[str, None]:
 
 def _retrieve_filename(file: Union[str, FileStorage]) -> str:
     """
-    Make our filename related functions generic, able to deal with FileStorage object as well as filename str.
+    Make our filename related functions generic, able to deal
+    with FileStorage object as well as filename str.
     """
     if isinstance(file, FileStorage):
         return file.filename

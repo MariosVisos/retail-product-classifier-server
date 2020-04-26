@@ -11,10 +11,11 @@ flask-uploads = "*"
 marshmallow = "==3.0.0b12"
 python-dotenv = "*"
 werkzeug = "==0.16.1"
+passlib = "*"
 
 [dev-packages]
-pylint-flask = "*"
 autopep8 = "*"
+flake8 = "*"
 
 [requires]
 python_version = "3.8"

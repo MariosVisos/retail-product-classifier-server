@@ -4,7 +4,7 @@ from flask_jwt_extended import (
     # get_jwt_claims,
     # get_jwt_identity,
     # jwt_optional,
-    fresh_jwt_required,
+    # fresh_jwt_required,
 )
 from models.photo import PhotoModel
 
@@ -21,7 +21,8 @@ class Photo(Resource):
         "price", type=float, required=True, help=BLANK_ERROR.format("price")
     )
     parser.add_argument(
-        "label_id", type=int, required=True, help=BLANK_ERROR.format("label_id")
+        "label_id", type=int, required=True,
+        help=BLANK_ERROR.format("label_id")
     )
 
     # Uncomment the @jwt decorators for using them only for logged in users
@@ -46,7 +47,7 @@ class Photo(Resource):
 
         try:
             photo.save_to_db()
-        except:
+        except Exception:
             return {"message": ERROR_INSERTING}, 500
 
         return photo.json(), 201
@@ -86,13 +87,13 @@ class PhotoList(Resource):
     @classmethod
     def get(cls):
         """
-        Here we get the JWT identity, and then if the user is logged in (we were able to get an identity)
-        we return the entire photo list.
+        Here we get the JWT identity, and then if the user is logged in
+        (we were able to get an identity) we return the entire photo list.
 
         Otherwise we just return the photo names.
 
-        This could be done with e.g. see orders that have been placed, but not see details about the orders
-        unless the user has logged in.
+        This could be done with e.g. see orders that have been placed,
+        but not see details about the orders unless the user has logged in.
         """
         # user_id = get_jwt_identity()
         photos = [photo.json() for photo in PhotoModel.find_all()]

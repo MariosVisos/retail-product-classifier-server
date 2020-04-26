@@ -24,7 +24,7 @@ class Dataset(Resource):
         dataset = DatasetModel(name)
         try:
             dataset.save_to_db()
-        except:
+        except Exception:
             return {"message": ERROR_INSERTING}, 500
 
         return dataset.json(), 201

@@ -4,7 +4,7 @@ from flask_jwt_extended import (
     # get_jwt_claims,
     # get_jwt_identity,
     # jwt_optional,
-    fresh_jwt_required,
+    # fresh_jwt_required,
 )
 from models.label import LabelModel
 
@@ -21,7 +21,8 @@ class Label(Resource):
         "price", type=float, required=True, help=BLANK_ERROR.format("price")
     )
     parser.add_argument(
-        "dataset_id", type=int, required=True, help=BLANK_ERROR.format("dataset_id")
+        "dataset_id", type=int, required=True,
+        help=BLANK_ERROR.format("dataset_id")
     )
 
     # Uncomment the @jwt decorators for using them only for logged in users
@@ -46,7 +47,7 @@ class Label(Resource):
 
         try:
             label.save_to_db()
-        except:
+        except Exception:
             return {"message": ERROR_INSERTING}, 500
 
         return label.json(), 201
@@ -86,13 +87,13 @@ class LabelList(Resource):
     @classmethod
     def get(cls):
         """
-        Here we get the JWT identity, and then if the user is logged in (we were able to get an identity)
-        we return the entire label list.
+        Here we get the JWT identity, and then if the user is logged in
+        (we were able to get an identity) we return the entire label list.
 
         Otherwise we just return the label names.
 
-        This could be done with e.g. see orders that have been placed, but not see details about the orders
-        unless the user has logged in.
+        This could be done with e.g. see orders that have been placed,
+        but not see details about the orders unless the user has logged in.
         """
         # user_id = get_jwt_identity()
         labels = [label.json() for label in LabelModel.find_all()]
