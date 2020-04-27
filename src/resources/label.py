@@ -17,13 +17,12 @@ LABEL_DELETED = "Label deleted."
 
 class Label(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument(
-        "price", type=float, required=True, help=BLANK_ERROR.format("price")
-    )
+
     parser.add_argument(
         "dataset_id", type=int, required=True,
         help=BLANK_ERROR.format("dataset_id")
     )
+    parser.add_argument("name", type=str, required=False)
 
     # Uncomment the @jwt decorators for using them only for logged in users
 
@@ -42,8 +41,9 @@ class Label(Resource):
             return {"message": NAME_ALREADY_EXISTS.format(name)}, 400,
 
         data = Label.parser.parse_args()
+        dataset_id = data["dataset_id"]
 
-        label = LabelModel(name, **data)
+        label = LabelModel(name, dataset_id)
 
         try:
             label.save_to_db()
@@ -73,9 +73,10 @@ class Label(Resource):
         label = LabelModel.find_by_name(name)
 
         if label:
-            label.price = data["price"]
+            label.name = data["name"]
         else:
-            label = LabelModel(name, **data)
+            dataset_id = data["dataset_id"]
+            label = LabelModel(name, dataset_id)
 
         label.save_to_db()
 

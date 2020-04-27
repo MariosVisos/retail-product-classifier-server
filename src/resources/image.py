@@ -7,6 +7,9 @@ import os
 
 from libs import image_helper
 from schemas.image import ImageSchema
+from models.image import ImageModel
+from models.label import LabelModel
+
 
 image_schema = ImageSchema()
 
@@ -14,7 +17,9 @@ IMAGE_UPLOADED = "Image '{}' uploaded"
 IMAGE_ILLEGAL_EXTENSION = "The extension '{}' is not allowed"
 IMAGE_ILLEGAL_FILENAME = "The filename '{}' is not allowed"
 IMAGE_NOT_FOUND = "The IMAGE '{}' is not found"
+IMAGE_DELETED = "The IMAGE '{}' is deleted"
 IMAGE_DELETE_FAILED = "Failed deleting the image"
+ERROR_INSERTING = "An error occurred while inserting the photo."
 
 
 class ImageUpload(Resource):
@@ -22,33 +27,45 @@ class ImageUpload(Resource):
     def post(self):
         """
         This endpoint is used to upload an image file. It uses the
-        JWT to retrieve user information and save the image in the user's folder.
-        If a file with the same name exists in the user's folder, name conflicts
-        will be automatically resolved by appending a underscore and a smallest
+        JWT to retrieve user information and save the image in the
+        user's folder. If a file with the same name exists in the
+        user's folder, name conflicts will be automatically
+        resolved by appending a underscore and a smallest
         unused integer. (eg. filename.png to filename_1.png).
         """
         data = image_schema.load(request.files)
-        metadata = request.form.get("metadata")
+        label_name = request.form.get("label_name")
+        label = LabelModel.find_by_name(label_name)
 
-        user_id = get_jwt_identity()
-        folder = f"user_{user_id}"  # static/images/user_1
+        # user_id = get_jwt_identity()
+        folder = label_name  # static/images/user_1
         try:
             # save(self, storage, folder=None, name=None)
             image_path = image_helper.save_image(data["image"], folder=folder)
-            # here we only return the basename of the image and hide the internal folder structure from our user
+            # here we only return the basename of the image and hide the
+            # internal folder structure from our user
             basename = image_helper.get_basename(image_path)
-            return {"message": IMAGE_UPLOADED.format(basename)}, 201
+
+            # create image in db
+            image = ImageModel(basename, label.id)
+            try:
+                image.save_to_db()
+            except Exception:
+                return {"message": ERROR_INSERTING}, 500
+
+            return {"message": IMAGE_UPLOADED.format(image.name)}, 201
         except UploadNotAllowed:  # forbidden file type
             extension = image_helper.get_extension(data["image"])
             return {"message": IMAGE_ILLEGAL_EXTENSION.format(extension)}, 400
 
 
 class Image(Resource):
-    @jwt_required
+    @ jwt_required
     def get(self, filename: str):
         """
-        This endpoint returns the requested image if exists. It will use JWT to
-        retrieve user information and look for the image inside the user's folder.
+        This endpoint returns the requested image if exists. It will use
+        JWT to retrieve user information and look for the image
+        inside the user's folder.
         """
         user_id = get_jwt_identity()
         folder = f"user_{user_id}"
@@ -61,11 +78,11 @@ class Image(Resource):
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
 
-    @jwt_required
+    @ jwt_required
     def delete(self, filename: str):
         """
-        This endpoint is used to delete the requested image under the user's folder.
-        It uses the JWT to retrieve user information.
+        This endpoint is used to delete the requested image under the user's
+        folder. It uses the JWT to retrieve user information.
         """
         user_id = get_jwt_identity()
         folder = f"user_{user_id}"
@@ -79,7 +96,7 @@ class Image(Resource):
             return {"message": IMAGE_DELETED.format(filename)}, 200
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
-        except:
+        except Exception:
             traceback.print_exc()
             return {"message": IMAGE_DELETE_FAILED}, 500
 
@@ -88,8 +105,8 @@ class Image(Resource):
 #     @jwt_required
 #     def put(self):
 #         """
-#         This endpoint is used to upload user avatar. All avatars are named after the user's id
-#         in such format: user_{id}.{ext}.
+#         This endpoint is used to upload user avatar. All avatars are named
+#         after the user's id in such format: user_{id}.{ext}.
 #         It will overwrite the existing avatar.
 #         """
 #         data = image_schema.load(request.files)
@@ -109,10 +126,15 @@ class Image(Resource):
 #                 data["image"], folder=folder, name=avatar
 #             )
 #             basename = image_helper.get_basename(avatar_path)
-#             return {"message": gettext("avatar_uploaded").format(basename)}, 200
+#             return (
+#               {"message": gettext("avatar_uploaded").format(basename)}, 200
+#             )
 #         except UploadNotAllowed:  # forbidden file type
 #             extension = image_helper.get_extension(data["image"])
-#             return {"message": gettext("image_illegal_extension").format(extension)}, 400
+#             return (
+#            {"message": gettext("image_illegal_extension").format(extension)},
+#               400
+#             )
 
 
 # class Avatar(Resource):

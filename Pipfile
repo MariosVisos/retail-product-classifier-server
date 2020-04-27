@@ -12,6 +12,7 @@ marshmallow = "==3.0.0b12"
 python-dotenv = "*"
 werkzeug = "==0.16.1"
 passlib = "*"
+flask-ngrok = "*"
 
 [dev-packages]
 autopep8 = "*"

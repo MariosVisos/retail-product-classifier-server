@@ -1,8 +1,8 @@
 from typing import Dict, List, Union
 from db import db
-from models.photo import PhotoJSON
+from models.image import ImageJSON
 
-LabelJSON = Dict[str, Union[int, str, List[PhotoJSON]]]
+LabelJSON = Dict[str, Union[int, str, List[ImageJSON]]]
 
 
 class LabelModel(db.Model):
@@ -10,15 +10,13 @@ class LabelModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
-    price = db.Column(db.Float(precision=2))
 
     dataset_id = db.Column(db.Integer, db.ForeignKey("datasets.id"))
     dataset = db.relationship("DatasetModel")
-    photos = db.relationship("PhotoModel", lazy="dynamic")
+    images = db.relationship("ImageModel", lazy="dynamic")
 
-    def __init__(self, name: str, price: float, dataset_id: int):
+    def __init__(self, name: str, dataset_id: int):
         self.name = name
-        self.price = price
         self.dataset_id = dataset_id
 
     def json(self) -> LabelJSON:
@@ -26,7 +24,7 @@ class LabelModel(db.Model):
             "id": self.id,
             "name": self.name,
             "dataset_id": self.dataset_id,
-            "photos": [photo.json() for photo in self.photos.all()],
+            "images": [image.json() for image in self.images.all()],
 
         }
 

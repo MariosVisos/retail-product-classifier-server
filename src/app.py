@@ -1,20 +1,23 @@
-import os
 from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_uploads import configure_uploads, patch_request_class
 from dotenv import load_dotenv
+# from flask_ngrok import run_with_ngrok
+
 
 from db import db
 from blacklist import BLACKLIST
-from resources.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
+from resources.user import (
+    UserRegister, UserLogin, User, TokenRefresh, UserLogout
+)
 from resources.label import Label, LabelList
-from resources.photo import Photo, PhotoList
 from resources.dataset import Dataset, DatasetList
 from resources.image import ImageUpload, Image
 from libs.image_helper import IMAGE_SET
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='', static_folder='../static')
+# run_with_ngrok(app)
 load_dotenv(".env", verbose=True)
 # load default configs from default_config.py
 app.config.from_object("default_config")
@@ -42,12 +45,14 @@ jwt = JWTManager(app)
 # ):  # Remember identity is what we define when creating the access token
 #     if (
 #         identity == 1
-#     ):  # instead of hard-coding, we should read from a file or database to get a list of admins instead
+#     ):  # instead of hard-coding, we should read from a file or database
+#           to get a list of admins instead
 #         return {"is_admin": True}
 #     return {"is_admin": False}
 
 
-# This method will check if a token is blacklisted, and will be called automatically when blacklist is enabled
+# This method will check if a token is blacklisted, and will be called
+# automatically when blacklist is enabled
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     return (
@@ -59,17 +64,21 @@ def check_if_token_in_blacklist(decrypted_token):
 # The original ones may not be in a very pretty format (opinionated)
 @jwt.expired_token_loader
 def expired_token_callback():
-    return jsonify({"message": "The token has expired.", "error": "token_expired"}), 401
+    return jsonify(
+        {"message": "The token has expired.", "error": "token_expired"}
+    ), 401
 
 # The following methods can be used to add jwt authorization to the app
 
 # @jwt.invalid_token_loader
 # def invalid_token_callback(
 #     error
-# ):  # we have to keep the argument here, since it's passed in by the caller internally
+# ):  # we have to keep the argument here, since it's passed in by the caller
+#       internally
 #     return (
 #         jsonify(
-#             {"message": "Signature verification failed.", "error": "invalid_token"}
+#             {"message": "Signature verification failed.", "error": "invalid
+#              _token"}
 #         ),
 #         401,
 #     )
@@ -103,7 +112,8 @@ def expired_token_callback():
 # def revoked_token_callback():
 #     return (
 #         jsonify(
-#             {"description": "The token has been revoked.", "error": "token_revoked"}
+#             {"description": "The token has been revoked.", "error": "token
+#              _revoked"}
 #         ),
 #         401,
 #     )
@@ -113,8 +123,6 @@ api.add_resource(Dataset, "/dataset/<string:name>")
 api.add_resource(DatasetList, "/datasets")
 api.add_resource(Label, "/label/<string:name>")
 api.add_resource(LabelList, "/labels")
-api.add_resource(Photo, "/photo/<string:name>")
-api.add_resource(PhotoList, "/photos")
 api.add_resource(UserRegister, "/register")
 api.add_resource(User, "/user/<int:user_id>")
 api.add_resource(UserLogin, "/login")
@@ -126,4 +134,4 @@ api.add_resource(Image, "/image/<string:filename>")
 
 if __name__ == "__main__":
     db.init_app(app)
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0')
