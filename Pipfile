@@ -13,6 +13,7 @@ python-dotenv = "*"
 werkzeug = "==0.16.1"
 passlib = "*"
 flask-ngrok = "*"
+flask-mail = "*"
 
 [dev-packages]
 autopep8 = "*"

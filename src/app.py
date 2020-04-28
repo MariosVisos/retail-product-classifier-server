@@ -1,15 +1,17 @@
+import os
 from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_uploads import configure_uploads, patch_request_class
 from dotenv import load_dotenv
+from flask_mail import Mail
 # from flask_ngrok import run_with_ngrok
 
 
 from db import db
 from blacklist import BLACKLIST
 from resources.user import (
-    UserRegister, UserLogin, User, TokenRefresh, UserLogout
+    UserRegister, UserLogin, User, TokenRefresh, UserLogout, ResetPassword
 )
 from resources.label import Label, LabelList
 from resources.dataset import Dataset, DatasetList
@@ -17,6 +19,20 @@ from resources.image import ImageUpload, Image
 from libs.image_helper import IMAGE_SET
 
 app = Flask(__name__, static_url_path='', static_folder='../static')
+
+mail_settings = {
+    "MAIL_SERVER": 'smtp.gmail.com',
+    "MAIL_PORT": 465,
+    "MAIL_USE_TLS": False,
+    "MAIL_USE_SSL": True,
+    "MAIL_USERNAME": os.environ['EMAIL_USER'],
+    "MAIL_PASSWORD": os.environ['EMAIL_PASSWORD'],
+    "MAIL_DEFAULT_SENDER": os.environ['EMAIL_USER']
+}
+
+app.config.update(mail_settings)
+mail = Mail(app)
+
 # run_with_ngrok(app)
 load_dotenv(".env", verbose=True)
 # load default configs from default_config.py
@@ -128,6 +144,8 @@ api.add_resource(User, "/user/<int:user_id>")
 api.add_resource(UserLogin, "/login")
 api.add_resource(TokenRefresh, "/refresh")
 api.add_resource(UserLogout, "/logout")
+api.add_resource(ResetPassword, "/reset_password",
+                 resource_class_kwargs={'mail': mail})
 api.add_resource(ImageUpload, "/upload/image")
 api.add_resource(Image, "/image/<string:filename>")
 

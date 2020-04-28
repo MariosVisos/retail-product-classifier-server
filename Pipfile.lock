@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "777af92757a2b04e070148a27139c4a162f820995e18aafe33e008ffcb2f9038"
+            "sha256": "e83a7634bf9a1134e2ea076de8f5ca8119608c86086eeaee35c1d84f9b9e4776"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -23,6 +23,12 @@
             ],
             "version": "==8.0.0"
         },
+        "blinker": {
+            "hashes": [
+                "sha256:471aee25f3992bd325afa3772f1063dbdbbca947a041b8b89466dc00d606f8b6"
+            ],
+            "version": "==1.4"
+        },
         "certifi": {
             "hashes": [
                 "sha256:1d987a998c75633c40847cc966fcf5904906c920a7f17ef374f5aa4282abd304",
@@ -39,10 +45,10 @@
         },
         "click": {
             "hashes": [
-                "sha256:8a18b4ea89d8820c5d0c7da8a64b2c324b4dabb695804dbfea19b9be9d88c0cc",
-                "sha256:e345d143d80bf5ee7534056164e5e112ea5e22716bbb1ce727941f4c8b471b9a"
+                "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a",
+                "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"
             ],
-            "version": "==7.1.1"
+            "version": "==7.1.2"
         },
         "flask": {
             "hashes": [
@@ -58,6 +64,13 @@
             ],
             "index": "pypi",
             "version": "==3.24.1"
+        },
+        "flask-mail": {
+            "hashes": [
+                "sha256:22e5eb9a940bf407bcf30410ecc3708f3c56cc44b29c34e1726fe85006935f41"
+            ],
+            "index": "pypi",
+            "version": "==0.9.1"
         },
         "flask-ngrok": {
             "hashes": [

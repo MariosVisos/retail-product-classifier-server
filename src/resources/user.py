@@ -7,6 +7,7 @@ from flask_jwt_extended import (
     jwt_required,
     get_raw_jwt,
 )
+from flask_mail import Message
 from passlib.hash import pbkdf2_sha256
 from models.user import UserModel
 from blacklist import BLACKLIST
@@ -18,13 +19,14 @@ USER_NOT_FOUND = "User not found."
 USER_DELETED = "User deleted."
 INVALID_CREDENTIALS = "Invalid credentials!"
 USER_LOGGED_OUT = "User <id={user_id}> successfully logged out."
+EMAIL_SENT_SUCCESSFULLY = "Email sent successfully"
 
 _user_parser = reqparse.RequestParser()
 _user_parser.add_argument(
     "username", type=str, required=True, help=BLANK_ERROR.format("username")
 )
 _user_parser.add_argument(
-    "password", type=str, required=True, help=BLANK_ERROR.format("password")
+    "password", type=str, required=False, help=BLANK_ERROR.format("password")
 )
 
 
@@ -107,3 +109,23 @@ class TokenRefresh(Resource):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}, 200
+
+
+class ResetPassword(Resource):
+    def __init__(self, **kwargs):
+        # smart_engine is a black box dependency
+        self.mail = kwargs['mail']
+
+    def post(self):
+        data = _user_parser.parse_args()
+
+        user = UserModel.find_by_username(data["username"])
+
+        if user:
+            msg = Message("Hello",
+                          recipients=["mariakos7@hotmail.com"],
+                          body="This is a test email with Gmail and Python!")
+            self.mail.send(msg)
+            return {"message": EMAIL_SENT_SUCCESSFULLY}, 200
+
+        return {"message": USER_NOT_FOUND}, 404
