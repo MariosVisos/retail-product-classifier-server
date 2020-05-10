@@ -36,14 +36,20 @@ class UserRegister(Resource):
         data = _user_parser.parse_args()
 
         if UserModel.find_by_username(data["username"]):
-            return {"message": USER_ALREADY_EXISTS}, 400
+            return (
+                {
+                    "message": USER_ALREADY_EXISTS,
+                    "reason": "user_already_exists"
+                },
+                400
+            )
 
         username = data["username"]
         password = pbkdf2_sha256.hash(data["password"])
         user = UserModel(username, password)
         user.save_to_db()
 
-        return {"message": CREATED_SUCCESSFULLY}, 201
+        return {"message": CREATED_SUCCESSFULLY, "user": user.json()}, 201
 
 
 class User(Resource):
@@ -84,11 +90,17 @@ class UserLogin(Resource):
             access_token = create_access_token(identity=user.id, fresh=True)
             refresh_token = create_refresh_token(user.id)
             return (
-                {"access_token": access_token, "refresh_token": refresh_token},
+                {
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                    "user": user.json()},
                 200
             )
 
-        return {"message": INVALID_CREDENTIALS}, 401
+        return (
+            {"message": INVALID_CREDENTIALS, "reason": "invalid_credentials"},
+            401
+        )
 
 
 class UserLogout(Resource):

@@ -19,17 +19,29 @@ class Dataset(Resource):
     @classmethod
     def post(cls, name: str):
         if DatasetModel.find_by_name(name):
-            return {"message": NAME_ALREADY_EXISTS.format(name)}, 400,
+            return (
+                {
+                    "message": NAME_ALREADY_EXISTS.format(name),
+                    "reason": "name_already_exists"
+                },
+                400,
+            )
 
         dataset = DatasetModel(name)
         try:
             dataset.save_to_db()
         except Exception:
-            return {"message": ERROR_INSERTING}, 500
+            return (
+                {
+                    "message": ERROR_INSERTING,
+                    "reason": "error_inserting"
+                },
+                500
+            )
 
         return dataset.json(), 201
 
-    @classmethod
+    @ classmethod
     def delete(cls, name: str):
         dataset = DatasetModel.find_by_name(name)
         if dataset:
@@ -39,6 +51,6 @@ class Dataset(Resource):
 
 
 class DatasetList(Resource):
-    @classmethod
+    @ classmethod
     def get(cls):
         return {"datasets": [x.json() for x in DatasetModel.find_all()]}
