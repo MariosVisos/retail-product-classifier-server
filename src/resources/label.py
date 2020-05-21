@@ -14,15 +14,16 @@ ERROR_INSERTING = "An error occurred while inserting the label."
 LABEL_NOT_FOUND = "Label not found."
 LABEL_DELETED = "Label deleted."
 
+parser = reqparse.RequestParser()
+
+parser.add_argument(
+    "dataset_id", type=int, required=True,
+    help=BLANK_ERROR.format("dataset_id")
+)
+parser.add_argument("name", type=str, required=False)
+
 
 class Label(Resource):
-    parser = reqparse.RequestParser()
-
-    parser.add_argument(
-        "dataset_id", type=int, required=True,
-        help=BLANK_ERROR.format("dataset_id")
-    )
-    parser.add_argument("name", type=str, required=False)
 
     # Uncomment the @jwt decorators for using them only for logged in users
 
@@ -40,7 +41,7 @@ class Label(Resource):
         if LabelModel.find_by_name(name):
             return {"message": NAME_ALREADY_EXISTS.format(name)}, 400,
 
-        data = Label.parser.parse_args()
+        data = parser.parse_args()
         dataset_id = data["dataset_id"]
 
         label = LabelModel(name, dataset_id)
@@ -68,7 +69,7 @@ class Label(Resource):
 
     @classmethod
     def put(cls, name: str):
-        data = Label.parser.parse_args()
+        data = parser.parse_args()
 
         label = LabelModel.find_by_name(name)
 
@@ -97,7 +98,14 @@ class LabelList(Resource):
         but not see details about the orders unless the user has logged in.
         """
         # user_id = get_jwt_identity()
-        labels = [label.json() for label in LabelModel.find_all()]
+        data = parser.parse_args()
+        dataset_id = data['dataset_id']
+        labels = None
+        if dataset_id:
+            labels = [label.json()
+                      for label in LabelModel.find_by_dataset_id(dataset_id)]
+        else:
+            labels = [label.json() for label in LabelModel.find_all()]
         # if user_id:
         return {"labels": labels}, 200
         # return (

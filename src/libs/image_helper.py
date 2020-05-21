@@ -13,7 +13,9 @@ def save_image(image: FileStorage, folder: str = None, name: str = None):
 
 
 def get_path(filename: str = None, folder: str = None) -> str:
-    return IMAGE_SET.path(filename, folder)
+    print("image_set_path:", IMAGE_SET.path(filename, folder))
+    path = f"..\{IMAGE_SET.path(filename, folder)}"
+    return path
 
 
 def find_image_any_format(filename: str, folder: str) -> Union[str, None]:

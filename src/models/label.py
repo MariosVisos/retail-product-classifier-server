@@ -33,8 +33,16 @@ class LabelModel(db.Model):
         return cls.query.filter_by(name=name).first()
 
     @classmethod
+    def find_by_id(cls, id: int) -> "LabelModel":
+        return cls.query.filter_by(id=id).first()
+
+    @classmethod
     def find_all(cls) -> List["LabelModel"]:
         return cls.query.all()
+
+    @classmethod
+    def find_by_dataset_id(cls, dataset_id: int) -> List["LabelModel"]:
+        return cls.query.filter_by(dataset_id=dataset_id)
 
     def save_to_db(self) -> None:
         db.session.add(self)

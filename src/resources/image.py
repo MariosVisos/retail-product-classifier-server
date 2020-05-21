@@ -23,7 +23,7 @@ ERROR_INSERTING = "An error occurred while inserting the photo."
 
 
 class ImageUpload(Resource):
-    @jwt_required
+    # @jwt_required
     def post(self):
         """
         This endpoint is used to upload an image file. It uses the
@@ -34,11 +34,12 @@ class ImageUpload(Resource):
         unused integer. (eg. filename.png to filename_1.png).
         """
         data = image_schema.load(request.files)
-        label_name = request.form.get("label_name")
-        label = LabelModel.find_by_name(label_name)
-
+        label_id = request.form.get("label_id")
+        print("upload_image -> label_id: ", label_id)
+        label = LabelModel.find_by_id(label_id)
+        print("label: ", label)
         # user_id = get_jwt_identity()
-        folder = label_name  # static/images/user_1
+        folder = label.name  # static/images/{label.name}
         try:
             # save(self, storage, folder=None, name=None)
             image_path = image_helper.save_image(data["image"], folder=folder)
@@ -60,20 +61,23 @@ class ImageUpload(Resource):
 
 
 class Image(Resource):
-    @ jwt_required
+    # @ jwt_required
     def get(self, filename: str):
         """
         This endpoint returns the requested image if exists. It will use
         JWT to retrieve user information and look for the image
         inside the user's folder.
         """
-        user_id = get_jwt_identity()
-        folder = f"user_{user_id}"
+        # user_id = get_jwt_identity()
+        # folder = f"user_{user_id}"
+        folder = "Kellogg's Special K"
         # check if filename is URL secure
         if not image_helper.is_filename_safe(filename):
             return {"message": IMAGE_ILLEGAL_FILENAME.format(filename)}, 400
         try:
             # try to send the requested file to the user with status code 200
+            print("debug get path", image_helper.get_path(
+                filename, folder=folder))
             return send_file(image_helper.get_path(filename, folder=folder))
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404

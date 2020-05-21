@@ -20,7 +20,7 @@ class DatasetModel(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "labels": [label.json() for label in self.labels.all()],
+            "label_ids": [label.json()['id'] for label in self.labels.all()],
         }
 
     @classmethod
