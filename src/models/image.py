@@ -29,6 +29,10 @@ class ImageModel(db.Model):
         return cls.query.filter_by(name=name).first()
 
     @classmethod
+    def find_by_label_id(cls, label_id: int) -> List["ImageModel"]:
+        return cls.query.filter_by(label_id=label_id)
+
+    @classmethod
     def find_all(cls) -> List["ImageModel"]:
         return cls.query.all()
 

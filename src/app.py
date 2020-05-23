@@ -15,7 +15,7 @@ from resources.user import (
 )
 from resources.label import Label, LabelList
 from resources.dataset import Dataset, DatasetList
-from resources.image import ImageUpload, Image
+from resources.image import ImageUpload, Image, ImageList
 from libs.image_helper import IMAGE_SET
 
 app = Flask(__name__, static_url_path='', static_folder='../static')
@@ -148,6 +148,7 @@ api.add_resource(ResetPassword, "/reset_password",
                  resource_class_kwargs={'mail': mail})
 api.add_resource(ImageUpload, "/upload/image")
 api.add_resource(Image, "/image/<string:filename>")
+api.add_resource(ImageList, "/images")
 
 
 if __name__ == "__main__":

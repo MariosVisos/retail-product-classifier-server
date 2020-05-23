@@ -105,6 +105,39 @@ class Image(Resource):
             return {"message": IMAGE_DELETE_FAILED}, 500
 
 
+class ImageList(Resource):
+    # @jwt_optional
+    @classmethod
+    def get(cls):
+        """
+        Here we get the JWT identity, and then if the user is logged in
+        (we were able to get an identity) we return the entire label list.
+
+        Otherwise we just return the label names.
+
+        This could be done with e.g. see orders that have been placed,
+        but not see details about the orders unless the user has logged in.
+        """
+        # user_id = get_jwt_identity()
+        data = parser.parse_args()
+        label_id = data['label_id']
+        labels = None
+        if label_id:
+            images = [image.json()
+                      for image in ImageModel.find_by_label_id(label_id)]
+        else:
+            images = [image.json() for image in ImageModel.find_all()]
+        # if user_id:
+        return {"images": images}, 200
+        # return (
+        #     {
+        #         "images": [image["name"] for image in images],
+        #         "message": "More data available if you log in.",
+        #     },
+        #     200,
+        # )
+
+
 # class AvatarUpload(Resource):
 #     @jwt_required
 #     def put(self):

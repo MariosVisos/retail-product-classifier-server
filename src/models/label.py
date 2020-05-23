@@ -24,7 +24,7 @@ class LabelModel(db.Model):
             "id": self.id,
             "name": self.name,
             "dataset_id": self.dataset_id,
-            "images": [image.json() for image in self.images.all()],
+            "image_ids": [image.json()["id"] for image in self.images.all()],
 
         }
 
