@@ -1,4 +1,4 @@
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 from flask_uploads import UploadNotAllowed
 from flask import send_file, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -13,6 +13,7 @@ from models.label import LabelModel
 
 image_schema = ImageSchema()
 
+BLANK_ERROR = "'{}' cannot be blank."
 IMAGE_UPLOADED = "Image '{}' uploaded"
 IMAGE_ILLEGAL_EXTENSION = "The extension '{}' is not allowed"
 IMAGE_ILLEGAL_FILENAME = "The filename '{}' is not allowed"
@@ -20,6 +21,14 @@ IMAGE_NOT_FOUND = "The IMAGE '{}' is not found"
 IMAGE_DELETED = "The IMAGE '{}' is deleted"
 IMAGE_DELETE_FAILED = "Failed deleting the image"
 ERROR_INSERTING = "An error occurred while inserting the photo."
+
+parser = reqparse.RequestParser()
+
+parser.add_argument(
+    "label_id", type=int, required=False,
+    help=BLANK_ERROR.format("label_id")
+)
+parser.add_argument("name", type=str, required=False)
 
 
 class ImageUpload(Resource):
@@ -62,15 +71,16 @@ class ImageUpload(Resource):
 
 class Image(Resource):
     # @ jwt_required
-    def get(self, filename: str):
+    def get(self, label_name: str, image_id: str):
         """
         This endpoint returns the requested image if exists. It will use
         JWT to retrieve user information and look for the image
-        inside the user's folder.
+        inside the label's folder.
         """
-        # user_id = get_jwt_identity()
-        # folder = f"user_{user_id}"
-        folder = "Kellogg's Special K"
+        image = ImageModel.find_by_id(image_id)
+        filename = image.name
+        print("label_name~folder", label_name)
+        folder = label_name
         # check if filename is URL secure
         if not image_helper.is_filename_safe(filename):
             return {"message": IMAGE_ILLEGAL_FILENAME.format(filename)}, 400
@@ -121,7 +131,7 @@ class ImageList(Resource):
         # user_id = get_jwt_identity()
         data = parser.parse_args()
         label_id = data['label_id']
-        labels = None
+        images = None
         if label_id:
             images = [image.json()
                       for image in ImageModel.find_by_label_id(label_id)]
