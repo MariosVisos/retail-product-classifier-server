@@ -21,6 +21,7 @@ parser.add_argument(
     help=BLANK_ERROR.format("dataset_id")
 )
 parser.add_argument("name", type=str, required=False)
+parser.add_argument("gtin", type=int, required=False)
 
 
 class Label(Resource):
@@ -30,10 +31,16 @@ class Label(Resource):
     # @jwt_required  # No longer needs brackets
     @classmethod
     def get(cls, name: str):
-        label = LabelModel.find_by_name(name)
+        label = None
+        data = parser.parse_args()
+        gtin = data["gtin"]
+        if gtin:
+            label = LabelModel.find_by_gtin(gtin)
+        else:
+            label = LabelModel.find_by_name(name)
         if label:
-            return label.json(), 200
-        return {"message": LABEL_NOT_FOUND}, 404
+            return {"label": label.json()}, 200
+        return {"error": {"message": LABEL_NOT_FOUND, "code": 404}}, 200
 
     # @fresh_jwt_required
     @classmethod
@@ -43,8 +50,9 @@ class Label(Resource):
 
         data = parser.parse_args()
         dataset_id = data["dataset_id"]
+        gtin = data["gtin"]
 
-        label = LabelModel(name, dataset_id)
+        label = LabelModel(name, gtin, dataset_id)
 
         try:
             label.save_to_db()
@@ -77,7 +85,8 @@ class Label(Resource):
             label.name = data["name"]
         else:
             dataset_id = data["dataset_id"]
-            label = LabelModel(name, dataset_id)
+            gtin = data["gtin"]
+            label = LabelModel(name, gtin, dataset_id)
 
         label.save_to_db()
 

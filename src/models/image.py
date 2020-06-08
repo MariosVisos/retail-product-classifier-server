@@ -9,18 +9,21 @@ class ImageModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
+    bounding_box = db.Column(db.String(800), unique=True)
 
     label_id = db.Column(db.Integer, db.ForeignKey("labels.id"))
     label = db.relationship("LabelModel")
 
-    def __init__(self, name: str, label_id: int):
+    def __init__(self, name: str, bounding_box: str, label_id: int):
         self.name = name
+        self.bounding_box = bounding_box
         self.label_id = label_id
 
     def json(self) -> ImageJSON:
         return {
             "id": self.id,
             "name": self.name,
+            "bounding_box": self.bounding_box,
             "label_id": self.label_id,
         }
 

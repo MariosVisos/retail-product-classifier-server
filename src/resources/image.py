@@ -4,6 +4,7 @@ from flask import send_file, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import traceback
 import os
+import json
 
 from libs import image_helper
 from schemas.image import ImageSchema
@@ -28,7 +29,12 @@ parser.add_argument(
     "label_id", type=int, required=False,
     help=BLANK_ERROR.format("label_id")
 )
+parser.add_argument(
+    "label_name", type=int, required=False,
+    help=BLANK_ERROR.format("label_name")
+)
 parser.add_argument("name", type=str, required=False)
+parser.add_argument("bounding_box", required=False)
 
 
 class ImageUpload(Resource):
@@ -43,12 +49,14 @@ class ImageUpload(Resource):
         unused integer. (eg. filename.png to filename_1.png).
         """
         data = image_schema.load(request.files)
-        label_id = request.form.get("label_id")
-        print("upload_image -> label_id: ", label_id)
-        label = LabelModel.find_by_id(label_id)
-        print("label: ", label)
+        label_name = request.form.get("label_name")
+        bb = request.form.get("bounding_box")
+        bounding_box = json.loads(bb)
+        print("bounding_box", bounding_box)
+
         # user_id = get_jwt_identity()
-        folder = label.name  # static/images/{label.name}
+        label = LabelModel.find_by_name(label_name)
+        folder = label_name  # static/images/{label.name}
         try:
             # save(self, storage, folder=None, name=None)
             image_path = image_helper.save_image(data["image"], folder=folder)
@@ -57,7 +65,7 @@ class ImageUpload(Resource):
             basename = image_helper.get_basename(image_path)
 
             # create image in db
-            image = ImageModel(basename, label.id)
+            image = ImageModel(basename, bb, label.id)
             try:
                 image.save_to_db()
             except Exception:
@@ -79,15 +87,12 @@ class Image(Resource):
         """
         image = ImageModel.find_by_id(image_id)
         filename = image.name
-        print("label_name~folder", label_name)
         folder = label_name
         # check if filename is URL secure
         if not image_helper.is_filename_safe(filename):
             return {"message": IMAGE_ILLEGAL_FILENAME.format(filename)}, 400
         try:
             # try to send the requested file to the user with status code 200
-            print("debug get path", image_helper.get_path(
-                filename, folder=folder))
             return send_file(image_helper.get_path(filename, folder=folder))
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
