@@ -1,10 +1,12 @@
 from flask_restful import Resource, reqparse
 from flask_uploads import UploadNotAllowed
-from flask import send_file, request
+from flask import send_file, send_from_directory, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import traceback
 import os
 import json
+import csv
+import sys
 
 from libs import image_helper
 from schemas.image import ImageSchema
@@ -52,7 +54,7 @@ class ImageUpload(Resource):
         label_name = request.form.get("label_name")
         bb = request.form.get("bounding_box")
         bounding_box = json.loads(bb)
-        print("bounding_box", bounding_box)
+        # print("bounding_box", bounding_box)
 
         # user_id = get_jwt_identity()
         label = LabelModel.find_by_name(label_name)
@@ -68,7 +70,24 @@ class ImageUpload(Resource):
             image = ImageModel(basename, bb, label.id)
             try:
                 image.save_to_db()
+                with open('annotations.csv', 'a', newline='') as csvfile:
+                    annotationswriter = csv.writer(csvfile)
+                    annotationswriter.writerow(
+                        [
+                            basename,
+                            bounding_box['topLeft']['x'],
+                            bounding_box['topLeft']['y'],
+                            bounding_box['bottomRight']['x'],
+                            bounding_box['bottomRight']['y'],
+                            label_name,
+                            bounding_box['width'],
+                            bounding_box['height']
+                        ]
+                    )
             except Exception:
+                print("Exception", Exception)
+                print("Unexpected error:", sys.exc_info()[0])
+                raise
                 return {"message": ERROR_INSERTING}, 500
 
             return {"message": IMAGE_UPLOADED.format(image.name)}, 201
@@ -93,7 +112,12 @@ class Image(Resource):
             return {"message": IMAGE_ILLEGAL_FILENAME.format(filename)}, 400
         try:
             # try to send the requested file to the user with status code 200
-            return send_file(image_helper.get_path(filename, folder=folder))
+            # abs_path = image_helper.get_path(filename, folder=folder)
+            # abs_path_list = abs_path.split("\\")
+            # abs_path_list.pop()
+            # path = "\\".join(abs_path_list)
+            path = f"..\static\images\{folder}"
+            return send_from_directory(path, filename)
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
 

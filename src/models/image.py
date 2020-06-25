@@ -8,8 +8,8 @@ class ImageModel(db.Model):
     __tablename__ = "images"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-    bounding_box = db.Column(db.String(800), unique=True)
+    name = db.Column(db.String(80))
+    bounding_box = db.Column(db.String(800))
 
     label_id = db.Column(db.Integer, db.ForeignKey("labels.id"))
     label = db.relationship("LabelModel")
