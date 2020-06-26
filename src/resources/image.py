@@ -37,6 +37,7 @@ parser.add_argument(
 )
 parser.add_argument("name", type=str, required=False)
 parser.add_argument("bounding_box", required=False)
+parser.add_argument("meta_data", required=False)
 
 
 class ImageUpload(Resource):
@@ -54,7 +55,9 @@ class ImageUpload(Resource):
         label_name = request.form.get("label_name")
         bb = request.form.get("bounding_box")
         bounding_box = json.loads(bb)
-        # print("bounding_box", bounding_box)
+        metadata = request.form.get("meta_data")
+        meta_data = json.loads(metadata)
+        print("meta_data", meta_data)
 
         # user_id = get_jwt_identity()
         label = LabelModel.find_by_name(label_name)
@@ -67,7 +70,7 @@ class ImageUpload(Resource):
             basename = image_helper.get_basename(image_path)
 
             # create image in db
-            image = ImageModel(basename, bb, label.id)
+            image = ImageModel(basename, bb, metadata, label.id)
             try:
                 image.save_to_db()
                 with open('annotations.csv', 'a', newline='') as csvfile:
@@ -75,10 +78,10 @@ class ImageUpload(Resource):
                     annotationswriter.writerow(
                         [
                             basename,
-                            bounding_box['topLeft']['x'],
-                            bounding_box['topLeft']['y'],
-                            bounding_box['bottomRight']['x'],
-                            bounding_box['bottomRight']['y'],
+                            bounding_box['top_left']['x'],
+                            bounding_box['top_left']['y'],
+                            bounding_box['bottom_right']['x'],
+                            bounding_box['bottom_right']['y'],
                             label_name,
                             bounding_box['width'],
                             bounding_box['height']

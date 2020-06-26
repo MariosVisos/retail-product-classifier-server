@@ -4,3 +4,4 @@ venv
 .env
 /static
 /src/data.db
+annotations.csv
