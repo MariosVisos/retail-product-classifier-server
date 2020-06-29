@@ -9,7 +9,7 @@ class ImageModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
-    bounding_box = db.Column(db.String(800))
+    dimensions = db.Column(db.String(800))
     meta_data = db.Column(db.String(2000))
 
     label_id = db.Column(db.Integer, db.ForeignKey("labels.id"))
@@ -17,12 +17,12 @@ class ImageModel(db.Model):
 
     def __init__(
         self, name: str,
-        bounding_box: str,
+        dimensions: str,
         meta_data: str,
         label_id: int
     ):
         self.name = name
-        self.bounding_box = bounding_box
+        self.dimensions = dimensions
         self.meta_data = meta_data
         self.label_id = label_id
 
@@ -30,7 +30,7 @@ class ImageModel(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "bounding_box": self.bounding_box,
+            "dimensions": self.dimensions,
             "meta_data": self.meta_data,
             "label_id": self.label_id,
         }

@@ -36,7 +36,7 @@ parser.add_argument(
     help=BLANK_ERROR.format("label_name")
 )
 parser.add_argument("name", type=str, required=False)
-parser.add_argument("bounding_box", required=False)
+parser.add_argument("dimensions", required=False)
 parser.add_argument("meta_data", required=False)
 
 
@@ -53,11 +53,12 @@ class ImageUpload(Resource):
         """
         data = image_schema.load(request.files)
         label_name = request.form.get("label_name")
-        bb = request.form.get("bounding_box")
-        bounding_box = json.loads(bb)
+        dim = request.form.get("dimensions")
         metadata = request.form.get("meta_data")
         meta_data = json.loads(metadata)
+        bounding_box = meta_data['bounding_box']
         print("meta_data", meta_data)
+        print("bounding_box", bounding_box)
 
         # user_id = get_jwt_identity()
         label = LabelModel.find_by_name(label_name)
@@ -70,7 +71,7 @@ class ImageUpload(Resource):
             basename = image_helper.get_basename(image_path)
 
             # create image in db
-            image = ImageModel(basename, bb, metadata, label.id)
+            image = ImageModel(basename, dim, metadata, label.id)
             try:
                 image.save_to_db()
                 with open('annotations.csv', 'a', newline='') as csvfile:
