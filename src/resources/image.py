@@ -52,7 +52,7 @@ class ImageUpload(Resource):
         unused integer. (eg. filename.png to filename_1.png).
         """
         data = image_schema.load(request.files)
-        label_name = request.form.get("label_name")
+        label_id = request.form.get("label_id")
         dim = request.form.get("dimensions")
         metadata = request.form.get("meta_data")
         meta_data = json.loads(metadata)
@@ -61,19 +61,21 @@ class ImageUpload(Resource):
         print("bounding_box", bounding_box)
 
         # user_id = get_jwt_identity()
-        label = LabelModel.find_by_name(label_name)
-        folder = label_name  # static/images/{label.name}
+        label = LabelModel.find_by_id(label_id)
         try:
-            # save(self, storage, folder=None, name=None)
-            image_path = image_helper.save_image(data["image"], folder=folder)
-            # here we only return the basename of the image and hide the
-            # internal folder structure from our user
-            basename = image_helper.get_basename(image_path)
-
             # create image in db
-            image = ImageModel(basename, dim, metadata, label.id)
+            image = ImageModel(dim, metadata, label.id)
+            # save(self, storage, folder=None, name=None)
             try:
                 image.save_to_db()
+                print("imageNameAfterSave", image.name)
+                print("imageIdAfterSave", image.id)
+                # static/images/f'{label.id}_{image.id}}
+                image_path = image_helper.save_image(
+                    data["image"], name=image.name)
+                # here we only return the basename of the image and hide the
+                # internal folder structure from our user
+                basename = image_helper.get_basename(image_path)
                 with open('annotations.csv', 'a', newline='') as csvfile:
                     annotationswriter = csv.writer(csvfile)
                     annotationswriter.writerow(
@@ -83,34 +85,35 @@ class ImageUpload(Resource):
                             bounding_box['top_left']['y'],
                             bounding_box['bottom_right']['x'],
                             bounding_box['bottom_right']['y'],
-                            label_name,
+                            label.name,
                             bounding_box['width'],
                             bounding_box['height']
                         ]
                     )
-            except Exception:
-                print("Exception", Exception)
-                print("Unexpected error:", sys.exc_info()[0])
-                raise
-                return {"message": ERROR_INSERTING}, 500
+            except UploadNotAllowed:  # forbidden file type
+                extension = image_helper.get_extension(data["image"])
+                return {"message": IMAGE_ILLEGAL_EXTENSION.format(extension)}, 400
+        except Exception:
+            print("Exception", Exception)
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+            return {"message": ERROR_INSERTING}, 500
 
-            return {"message": IMAGE_UPLOADED.format(image.name)}, 201
-        except UploadNotAllowed:  # forbidden file type
-            extension = image_helper.get_extension(data["image"])
-            return {"message": IMAGE_ILLEGAL_EXTENSION.format(extension)}, 400
+        return {"message": IMAGE_UPLOADED.format(image.name)}, 201
 
 
 class Image(Resource):
     # @ jwt_required
-    def get(self, label_name: str, image_id: str):
+    def get(self, label_id: str, image_id: str):
         """
-        This endpoint returns the requested image if exists. It will use
+        This endpoint returns the requested i   mage if exists. It will use
         JWT to retrieve user information and look for the image
         inside the label's folder.
         """
         image = ImageModel.find_by_id(image_id)
         filename = image.name
-        folder = label_name
+        print("filename: ", filename)
+        # folder = label_name
         # check if filename is URL secure
         if not image_helper.is_filename_safe(filename):
             return {"message": IMAGE_ILLEGAL_FILENAME.format(filename)}, 400
@@ -120,7 +123,7 @@ class Image(Resource):
             # abs_path_list = abs_path.split("\\")
             # abs_path_list.pop()
             # path = "\\".join(abs_path_list)
-            path = f"..\static\images\{folder}"
+            path = "..\static\images"
             return send_from_directory(path, filename)
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404

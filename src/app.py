@@ -147,7 +147,7 @@ api.add_resource(UserLogout, "/logout")
 api.add_resource(ResetPassword, "/reset_password",
                  resource_class_kwargs={'mail': mail})
 api.add_resource(ImageUpload, "/upload/image")
-api.add_resource(Image, "/image/<string:label_name>/<string:image_id>")
+api.add_resource(Image, "/image/<string:label_id>/<string:image_id>")
 api.add_resource(ImageList, "/images")
 
 

@@ -16,12 +16,12 @@ class ImageModel(db.Model):
     label = db.relationship("LabelModel")
 
     def __init__(
-        self, name: str,
+        self,
         dimensions: str,
         meta_data: str,
         label_id: int
     ):
-        self.name = name
+        self.name = f'{self.id}_{label_id}.jpg'
         self.dimensions = dimensions
         self.meta_data = meta_data
         self.label_id = label_id
@@ -53,6 +53,8 @@ class ImageModel(db.Model):
 
     def save_to_db(self) -> None:
         db.session.add(self)
+        db.session.flush()
+        self.name = f'{self.label_id}_{self.id}.jpg'
         db.session.commit()
 
     def delete_from_db(self) -> None:
