@@ -9,6 +9,7 @@ class ImageModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
+    angle = db.Column(db.String(80))
     dimensions = db.Column(db.String(800))
     meta_data = db.Column(db.String(2000))
 
@@ -17,11 +18,13 @@ class ImageModel(db.Model):
 
     def __init__(
         self,
+        angle: str,
         dimensions: str,
         meta_data: str,
         label_id: int
     ):
         self.name = f'{self.id}_{label_id}.jpg'
+        self.angle = angle
         self.dimensions = dimensions
         self.meta_data = meta_data
         self.label_id = label_id
@@ -29,6 +32,7 @@ class ImageModel(db.Model):
     def json(self) -> ImageJSON:
         return {
             "id": self.id,
+            "angle": self.angle,
             "name": self.name,
             "dimensions": self.dimensions,
             "meta_data": self.meta_data,
@@ -54,7 +58,7 @@ class ImageModel(db.Model):
     def save_to_db(self) -> None:
         db.session.add(self)
         db.session.flush()
-        self.name = f'{self.label_id}_{self.id}.jpg'
+        self.name = f'{self.label_id}_{self.id}_{self.angle}.jpg'
         db.session.commit()
 
     def delete_from_db(self) -> None:

@@ -37,6 +37,7 @@ parser.add_argument(
 )
 parser.add_argument("name", type=str, required=False)
 parser.add_argument("dimensions", required=False)
+parser.add_argument("angle", required=False)
 parser.add_argument("meta_data", required=False)
 
 
@@ -54,6 +55,7 @@ class ImageUpload(Resource):
         data = image_schema.load(request.files)
         label_id = request.form.get("label_id")
         dim = request.form.get("dimensions")
+        angle = request.form.get("angle")
         metadata = request.form.get("meta_data")
         meta_data = json.loads(metadata)
         bounding_box = meta_data['bounding_box']
@@ -64,13 +66,13 @@ class ImageUpload(Resource):
         label = LabelModel.find_by_id(label_id)
         try:
             # create image in db
-            image = ImageModel(dim, metadata, label.id)
+            image = ImageModel(angle, dim, metadata, label.id)
             # save(self, storage, folder=None, name=None)
             try:
                 image.save_to_db()
                 print("imageNameAfterSave", image.name)
                 print("imageIdAfterSave", image.id)
-                # static/images/f'{label.id}_{image.id}}
+                # static/images/f'{label.id}_{image.id}_{angle}}
                 image_path = image_helper.save_image(
                     data["image"], name=image.name)
                 # here we only return the basename of the image and hide the
