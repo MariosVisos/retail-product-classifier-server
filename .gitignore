@@ -3,5 +3,6 @@
 venv
 .env
 /static
+/img
 /src/data.db
 annotations.csv

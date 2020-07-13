@@ -1,8 +1,6 @@
 import os
 import csv
-import shutil
 from PIL import Image
-import argparse
 import sys
 
 
@@ -19,7 +17,7 @@ def extract_products_from_scenes():
         print("Extracting and reformatting products from scene, according to the bounding-box-CSV you supplied/was generated in the Product Detection step...")
         for row in f_all_reader:
             name = row[0]
-            filename = os.path.join('static/images/Lotus', name)
+            filename = os.path.join('static/images', name)
             im = Image.open(filename)
             x1 = int(float(row[1]))
             y1 = int(float(row[2]))
@@ -34,7 +32,7 @@ def extract_products_from_scenes():
             resized_im = im.resize((int(new_x), int(new_y)), Image.BICUBIC)
             new_im.paste(
                 resized_im, (int((512 - new_x) / 2), int((512 - new_y) / 2)))
-            new_im.save('img' + "/" + name + ".png", "PNG")
+            new_im.save('img' + "/" + name)
             total_counter += 1
             progressBar(total_counter, row_count)
         print("\nDone extracting.\n")

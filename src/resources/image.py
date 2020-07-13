@@ -59,8 +59,6 @@ class ImageUpload(Resource):
         metadata = request.form.get("meta_data")
         meta_data = json.loads(metadata)
         bounding_box = meta_data['bounding_box']
-        print("meta_data", meta_data)
-        print("bounding_box", bounding_box)
 
         # user_id = get_jwt_identity()
         label = LabelModel.find_by_id(label_id)
@@ -70,8 +68,6 @@ class ImageUpload(Resource):
             # save(self, storage, folder=None, name=None)
             try:
                 image.save_to_db()
-                print("imageNameAfterSave", image.name)
-                print("imageIdAfterSave", image.id)
                 # static/images/f'{label.id}_{image.id}_{angle}}
                 image_path = image_helper.save_image(
                     data["image"], name=image.name)
@@ -92,6 +88,9 @@ class ImageUpload(Resource):
                             bounding_box['height']
                         ]
                     )
+                with open('all_train_files.txt', 'a') as txtObj:
+                    txtObj.write(f'static/images/{image_path}')
+                    txtObj.write('\n')
             except UploadNotAllowed:  # forbidden file type
                 extension = image_helper.get_extension(data["image"])
                 return {"message": IMAGE_ILLEGAL_EXTENSION.format(extension)}, 400
@@ -114,7 +113,6 @@ class Image(Resource):
         """
         image = ImageModel.find_by_id(image_id)
         filename = image.name
-        print("filename: ", filename)
         # folder = label_name
         # check if filename is URL secure
         if not image_helper.is_filename_safe(filename):
@@ -155,7 +153,7 @@ class Image(Resource):
 
 class ImageList(Resource):
     # @jwt_optional
-    @classmethod
+    @ classmethod
     def get(cls):
         """
         Here we get the JWT identity, and then if the user is logged in
