@@ -14,6 +14,13 @@ from models.image import ImageModel
 from models.label import LabelModel
 
 
+def proper_round(num, dec=0):
+    num = str(num)[:str(num).index('.')+dec+2]
+    if num[-1] >= '5':
+        return float(num[:-2-(not dec)]+str(int(num[-2-(not dec)])+1))
+    return float(num[:-1])
+
+
 image_schema = ImageSchema()
 
 BLANK_ERROR = "'{}' cannot be blank."
@@ -55,6 +62,7 @@ class ImageUpload(Resource):
         data = image_schema.load(request.files)
         label_id = request.form.get("label_id")
         dim = request.form.get("dimensions")
+        dimensions = json.loads(dim)
         angle = request.form.get("angle")
         metadata = request.form.get("meta_data")
         meta_data = json.loads(metadata)
@@ -79,13 +87,17 @@ class ImageUpload(Resource):
                     annotationswriter.writerow(
                         [
                             basename,
-                            bounding_box['top_left']['x'],
-                            bounding_box['top_left']['y'],
-                            bounding_box['bottom_right']['x'],
-                            bounding_box['bottom_right']['y'],
+                            int(proper_round(bounding_box['top_left']['x'])),
+                            int(proper_round(bounding_box['top_left']['y'])),
+                            int(proper_round(
+                                bounding_box['bottom_right']['x']
+                            )),
+                            int(proper_round(
+                                bounding_box['bottom_right']['y']
+                            )),
                             label.name,
-                            bounding_box['width'],
-                            bounding_box['height']
+                            dimensions['width'],
+                            dimensions['height']
                         ]
                     )
                 with open('all_train_files.txt', 'a') as txtObj:

@@ -4,5 +4,6 @@ venv
 .env
 /static
 /img
-/src/data.db
+# /src/data.db
+/__pycache__
 annotations.csv

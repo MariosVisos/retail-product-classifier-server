@@ -51,6 +51,6 @@ class Dataset(Resource):
 
 
 class DatasetList(Resource):
-    @ classmethod
+    @classmethod
     def get(cls):
         return {"datasets": [x.json() for x in DatasetModel.find_all()]}

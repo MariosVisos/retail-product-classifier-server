@@ -62,7 +62,7 @@ class Label(Resource):
         return label.json(), 201
 
     @classmethod
-    @jwt_required
+    # @jwt_required
     def delete(cls, name: str):
         # Uncomment the following for allowing only admins to delete
         # claims = get_jwt_claims()

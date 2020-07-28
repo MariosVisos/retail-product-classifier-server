@@ -1,6 +1,7 @@
 from collections import defaultdict
 from pprint import pprint
 from random import choices, choice
+import math
 # const pos_anch_pairs = []
 # for every class
 # get all pairs
@@ -20,18 +21,22 @@ from random import choices, choice
 
 # 1: center, 2: left, 3: right, : 4 back
 angles = ['1', '2', '3', '4']
+test_ratio = 0.2
 
 
 def group_labels_by_angles(all_files_obj):
     '''Groups by and also creates list of all images'''
     labels_by_angle = defaultdict(defaultdict(list).copy)
     images = []
+    images_length = 0
     for (index, line) in enumerate(all_files_obj.readlines()):
         image_name = line.rstrip('.jpg\n').replace('static/images/', '')
         images.append(image_name)
         label_id, image_id, angle = image_name.split('_')
         labels_by_angle[label_id][angle].append(index)
-    return(images, labels_by_angle)
+        images_length += 1
+    num_of_test = int(math.ceil(test_ratio * images_length))
+    return(images, labels_by_angle, num_of_test)
 
 
 def get_negative_indexes(labels_by_angle, label_id, angle):
@@ -74,14 +79,19 @@ def generate_triplets():
             open('sampled_train_triplets.txt',
                  'a',
                  newline=''
-                 ) as sample_obj:
+                 ) as train_obj, \
+            open('sampled_test_triplets.txt',
+                 'a',
+                 newline=''
+                 ) as test_obj:
 
-        images, labels_by_angle = group_labels_by_angles(all_files_obj)
+        images, labels_by_angle, num_of_test = group_labels_by_angles(
+            all_files_obj)
         print('labels_by_angle: ')
         pprint(labels_by_angle)
 
-        for (index, image_name) in enumerate(images):
-            anchor_index = index
+        for (counter, image_name) in enumerate(images):
+            anchor_index = counter
 
             label_id, image_id, angle = image_name.split('_')
 
@@ -93,10 +103,33 @@ def generate_triplets():
             positive_index_1, positive_index_2 = get_positive_indexes(
                 label, angle
             )
-
-            triplet_1 = f'{anchor_index} {positive_index_1} {negative_index_1}'
-            sample_obj.write(triplet_1)
-            sample_obj.write('\n')
-            triplet_2 = f'{anchor_index} {positive_index_2} {negative_index_2}'
-            sample_obj.write(triplet_2)
-            sample_obj.write('\n')
+            if (counter + 1 <= num_of_test):
+                triplet_1 = (
+                    f'{anchor_index} '
+                    f'{positive_index_1} '
+                    f'{negative_index_1}'
+                )
+                test_obj.write(triplet_1)
+                test_obj.write('\n')
+                triplet_2 = (
+                    f'{anchor_index} '
+                    f'{positive_index_2} '
+                    f'{negative_index_2}'
+                )
+                test_obj.write(triplet_2)
+                test_obj.write('\n')
+            else:
+                triplet_1 = (
+                    f'{anchor_index} '
+                    f'{positive_index_1} '
+                    f'{negative_index_1}'
+                )
+                train_obj.write(triplet_1)
+                train_obj.write('\n')
+                triplet_2 = (
+                    f'{anchor_index} '
+                    f'{positive_index_2} '
+                    f'{negative_index_2}'
+                )
+                train_obj.write(triplet_2)
+                train_obj.write('\n')
