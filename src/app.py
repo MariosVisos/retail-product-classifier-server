@@ -14,7 +14,7 @@ from resources.user import (
     UserRegister, UserLogin, User, TokenRefresh, UserLogout, ResetPassword
 )
 from resources.label import Label, LabelList
-from resources.dataset import Dataset, DatasetList
+from resources.dataset import Dataset, DatasetList, DatasetClassify
 from resources.image import ImageUpload, Image, ImageList
 from libs.image_helper import IMAGE_SET
 
@@ -137,6 +137,7 @@ def expired_token_callback():
 
 api.add_resource(Dataset, "/dataset/<string:name>")
 api.add_resource(DatasetList, "/datasets")
+api.add_resource(DatasetClassify, "/dataset/classify")
 api.add_resource(Label, "/label/<string:name>")
 api.add_resource(LabelList, "/labels")
 api.add_resource(UserRegister, "/register")

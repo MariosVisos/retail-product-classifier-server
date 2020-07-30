@@ -15,6 +15,8 @@ from models.label import LabelModel
 
 
 def proper_round(num, dec=0):
+    if isinstance(num, int):
+        num = float(num)
     num = str(num)[:str(num).index('.')+dec+2]
     if num[-1] >= '5':
         return float(num[:-2-(not dec)]+str(int(num[-2-(not dec)])+1))
@@ -140,22 +142,25 @@ class Image(Resource):
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
 
-    @ jwt_required
-    def delete(self, filename: str):
+    # @ jwt_required
+    def delete(self, label_id: str, image_id: str):
         """
         This endpoint is used to delete the requested image under the user's
         folder. It uses the JWT to retrieve user information.
         """
-        user_id = get_jwt_identity()
-        folder = f"user_{user_id}"
+        image = ImageModel.find_by_id(image_id)
+        filename = image.name
 
         # check if filename is URL secure
         if not image_helper.is_filename_safe(filename):
             return {"message": IMAGE_ILLEGAL_FILENAME.format(filename)}, 400
 
         try:
-            os.remove(image_helper.get_path(filename, folder=folder))
+            image_path = os.path.abspath(f'static/images/{filename}')
+            image.delete_from_db()
+            os.remove(image_path)
             return {"message": IMAGE_DELETED.format(filename)}, 200
+
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
         except Exception:
