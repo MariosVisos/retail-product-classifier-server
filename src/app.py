@@ -20,6 +20,11 @@ from libs.image_helper import IMAGE_SET
 
 app = Flask(__name__, static_url_path='', static_folder='../static')
 
+mail = Mail(app)
+
+# run_with_ngrok(app)
+load_dotenv(".env", verbose=True)
+
 mail_settings = {
     "MAIL_SERVER": 'smtp.gmail.com',
     "MAIL_PORT": 465,
@@ -31,10 +36,6 @@ mail_settings = {
 }
 
 app.config.update(mail_settings)
-mail = Mail(app)
-
-# run_with_ngrok(app)
-load_dotenv(".env", verbose=True)
 # load default configs from default_config.py
 app.config.from_object("default_config")
 # override with config.py (APPLICATION_SETTINGS points to config.py)
