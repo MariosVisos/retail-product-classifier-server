@@ -11,4 +11,6 @@ venv
 /img
 env
 nohup.out
-predict_sku110k.log
+results/**
+!results/images
+results/images/*

@@ -4,20 +4,25 @@ from PIL import Image
 import sys
 
 
-def extract_products_from_scenes():
-
-    with open('annotations.csv', "r") as f:
+def crop_bounding_boxes():
+    # csv = annotations.csv
+    if not os.path.isfile('results/detections_output_iou.csv'):
+        with open("results/detections_output_iou.csv", "w") as empty_csv:
+            pass 
+    
+    with open("results/detections_output_iou.csv", "r") as f:
         f_counter = csv.reader(f, delimiter=',')
         row_count = sum(1 for row in f_counter)
 
-    with open('annotations.csv', "r") as f_all:
+    with open("results/detections_output_iou.csv", "r") as f_all:
         f_all_reader = csv.reader(f_all, delimiter=',')
         i = 0
         total_counter = 0
+        next(f_all_reader, None)
         print("Extracting and reformatting products from scene, according to the bounding-box-CSV you supplied/was generated in the Product Detection step...")
         for row in f_all_reader:
             name = row[0]
-            filename = os.path.join('static/images', name)
+            filename = os.path.join(os.getcwd(), name)
             im = Image.open(filename)
             x1 = int(float(row[1]))
             y1 = int(float(row[2]))
@@ -32,7 +37,9 @@ def extract_products_from_scenes():
             resized_im = im.resize((int(new_x), int(new_y)), Image.BICUBIC)
             new_im.paste(
                 resized_im, (int((512 - new_x) / 2), int((512 - new_y) / 2)))
-            new_im.save('img' + "/" + name)
+            filepath, extension = name.split(".")
+            output_path = f"results/{filepath}({total_counter}).{extension}"
+            new_im.save(output_path)
             total_counter += 1
             progressBar(total_counter, row_count)
         print("\nDone extracting.\n")

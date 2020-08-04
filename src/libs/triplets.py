@@ -87,8 +87,8 @@ def generate_triplets():
 
         images, labels_by_angle, num_of_test = group_labels_by_angles(
             all_files_obj)
-        print('labels_by_angle: ')
-        pprint(labels_by_angle)
+        # print('labels_by_angle: ')
+        # pprint(labels_by_angle)
 
         for (counter, image_name) in enumerate(images):
             anchor_index = counter

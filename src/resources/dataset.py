@@ -3,6 +3,7 @@ from flask_restful import Resource
 from models.dataset import DatasetModel
 import os
 import subprocess
+from libs.image import crop_bounding_boxes
 
 BLANK_ERROR = "'{}' cannot be blank."
 NAME_ALREADY_EXISTS = "A dataset with name '{}' already exists."
@@ -63,14 +64,20 @@ class DatasetList(Resource):
 class DatasetClassify(Resource):
     # @jwt_required
     def get(self):
-        data = image_schema.load(request.files)
+        # data = image_schema.load(request.files)
         predict_dir = os.path.join(os.getcwd(), '../sku110k/env/bin/activate')
         predict_dir = os.path.abspath(os.path.join(predict_dir, os.pardir))
         os.environ['PYTHONPATH'] = "/opt/rpcserver/sku110k"
         python_bin = os.path.abspath("../sku110k/env/bin/python")
         subprocess.call(
-            f'nohup env PYTHONPATH="/opt/rpcserver/sku110k"; . /opt/rpcserver/sku110k/env/bin/activate; python -u /opt/rpcserver/sku110k/object_detector_retinanet/keras_retinanet/bin/predict.py --gpu 3 csv "/opt/rpcserver/sku110k/iou_resnet50_csv_06.h5" --hard_score_rate=0.5 | tee predict_sku110k.log', shell=True)
-        dataset_id = request.form.get("dataset_id")
+            f'nohup env PYTHONPATH="/opt/rpcserver/sku110k"; . /opt/rpcserver/sku110k/env/bin/activate; python -u /opt/rpcserver/sku110k/object_detector_retinanet/keras_retinanet/bin/predict.py --gpu 3 csv "/opt/rpcserver/sku110k/iou_resnet50_csv_06.h5" --hard_score_rate=0.5 | tee results/predict_sku110k.log', shell=True)
+        
+        crop_bounding_boxes()
+
+        subprocess.call(
+            f'. /opt/rpcserver/encoder/env/bin/activate; python /opt/rpcserver/encoder/test.py --name latest --reranking 2 --test_images_dir results/images --invitro_images_dir /opt/rpcserver/encoder/ref_dir', shell=True)
+        # dataset_id = request.form.get("dataset_id")
+
         return
         # label = LabelModel.find_by_id(label_id)
         # try:
