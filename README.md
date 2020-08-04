@@ -1,10 +1,10 @@
 # retail-product-classifier-server
 
-Simple overview of use/purpose.
+Flask web application
 
 ## Description
 
-Backend server to be used with the [retail-product-classifier](https://github.com/MariosVisos/retail-product-classifier "retail-product-classifier client repository") retail-product-classifier client.
+Backend server to be used with the [retail-product-classifier](https://github.com/MariosVisos/retail-product-classifier "retail-product-classifier client repository") client.
 
 ## Getting Started
 
