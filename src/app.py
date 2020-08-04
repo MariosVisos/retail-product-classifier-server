@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from flask_uploads import configure_uploads, patch_request_class
 from dotenv import load_dotenv
 from flask_mail import Mail
-# from flask_ngrok import run_with_ngrok
+from flask_ngrok import run_with_ngrok
 
 
 from db import db
@@ -22,8 +22,8 @@ app = Flask(__name__, static_url_path='', static_folder='../static')
 
 mail = Mail(app)
 
-# run_with_ngrok(app)
 load_dotenv(".env", verbose=True)
+run_with_ngrok(app)
 
 mail_settings = {
     "MAIL_SERVER": 'smtp.gmail.com',
@@ -155,4 +155,4 @@ api.add_resource(ImageList, "/images")
 
 if __name__ == "__main__":
     db.init_app(app)
-    app.run(host='0.0.0.0')
+    app.run()
