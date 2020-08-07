@@ -137,7 +137,7 @@ class Image(Resource):
             # abs_path_list = abs_path.split("\\")
             # abs_path_list.pop()
             # path = "\\".join(abs_path_list)
-            path = "static\images"
+            path = "..\static\images"
             return send_from_directory(path, filename)
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
