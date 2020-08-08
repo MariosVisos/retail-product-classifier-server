@@ -8,3 +8,4 @@ nohup.out
 results/**
 !results/images
 results/images/*
+logs

@@ -14,14 +14,6 @@ from models.image import ImageModel
 from models.label import LabelModel
 
 
-def proper_round(num, dec=0):
-    if isinstance(num, int):
-        num = float(num)
-    num = str(num)[:str(num).index('.')+dec+2]
-    if num[-1] >= '5':
-        return float(num[:-2-(not dec)]+str(int(num[-2-(not dec)])+1))
-    return float(num[:-1])
-
 
 image_schema = ImageSchema()
 
@@ -64,11 +56,11 @@ class ImageUpload(Resource):
         data = image_schema.load(request.files)
         label_id = request.form.get("label_id")
         dim = request.form.get("dimensions")
-        dimensions = json.loads(dim)
+        # dimensions = json.loads(dim)
         angle = request.form.get("angle")
         metadata = request.form.get("meta_data")
-        meta_data = json.loads(metadata)
-        bounding_box = meta_data['bounding_box']
+        # meta_data = json.loads(metadata)
+        # bounding_box = meta_data['bounding_box']
 
         # user_id = get_jwt_identity()
         label = LabelModel.find_by_id(label_id)
@@ -79,32 +71,32 @@ class ImageUpload(Resource):
             try:
                 image.save_to_db()
                 # static/images/f'{label.id}_{image.id}_{angle}}
-                image_path = image_helper.save_image(
-                    data["image"], name=image.name)
+                # image_path = image_helper.save_image(
+                #     data["image"], name=image.name)
                 # here we only return the basename of the image and hide the
                 # internal folder structure from our user
-                basename = image_helper.get_basename(image_path)
-                with open('annotations.csv', 'a', newline='') as csvfile:
-                    annotationswriter = csv.writer(csvfile)
-                    annotationswriter.writerow(
-                        [
-                            basename,
-                            int(proper_round(bounding_box['top_left']['x'])),
-                            int(proper_round(bounding_box['top_left']['y'])),
-                            int(proper_round(
-                                bounding_box['bottom_right']['x']
-                            )),
-                            int(proper_round(
-                                bounding_box['bottom_right']['y']
-                            )),
-                            label.name,
-                            dimensions['width'],
-                            dimensions['height']
-                        ]
-                    )
-                with open('all_train_files.txt', 'a') as txtObj:
-                    txtObj.write(f'static/images/{image_path}')
-                    txtObj.write('\n')
+                # basename = image_helper.get_basename(image_path)
+                # with open('annotations.csv', 'a', newline='') as csvfile:
+                #     annotationswriter = csv.writer(csvfile)
+                #     annotationswriter.writerow(
+                #         [
+                #             basename,
+                #            round(bounding_box['top_left']['x']),
+                #            round(bounding_box['top_left']['y']),
+                #            round(
+                #                 bounding_box['bottom_right']['x']
+                #             ),
+                #            round(
+                #                 bounding_box['bottom_right']['y']
+                #             ),
+                #             label.name,
+                #             dimensions['width'],
+                #             dimensions['height']
+                #         ]
+                #     )
+                # with open('all_train_files.txt', 'a') as txtObj:
+                #     txtObj.write(f'static/images/{image_path}')
+                #     txtObj.write('\n')
             except UploadNotAllowed:  # forbidden file type
                 extension = image_helper.get_extension(data["image"])
                 return {"message": IMAGE_ILLEGAL_EXTENSION.format(extension)}, 400
@@ -118,6 +110,7 @@ class ImageUpload(Resource):
 
 
 class Image(Resource):
+
     # @ jwt_required
     def get(self, label_id: str, image_id: str):
         """
@@ -141,6 +134,26 @@ class Image(Resource):
             return send_from_directory(path, filename)
         except FileNotFoundError:
             return {"message": IMAGE_NOT_FOUND.format(filename)}, 404
+
+
+    @classmethod
+    def put(cls, label_id: str, image_id: str):        
+
+        image = ImageModel.find_by_id(image_id)
+
+        print("image.name", image.name)
+
+
+        meta_data = json.loads(image.meta_data)
+        bounding_box = meta_data['bounding_box']
+        print("top_left_y", bounding_box['top_left']['y'])
+        print("top_left_y", round(bounding_box['top_left']['y']))
+        print("top_left_y", int(round(bounding_box['top_left']['y'])))
+
+        # image.save_to_db()
+
+        return image.json(), 200
+
 
     # @ jwt_required
     def delete(self, label_id: str, image_id: str):

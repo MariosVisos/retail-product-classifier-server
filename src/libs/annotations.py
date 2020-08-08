@@ -5,7 +5,7 @@ import random
 
 
 current_directory = os.getcwd()
-folder = os.path.join(current_directory, r'annotations')
+folder = os.path.join(current_directory, '../sku110k/annotations/')
 if not os.path.exists(folder):
     os.makedirs(folder)
 
@@ -13,15 +13,15 @@ if not os.path.exists(folder):
 def train_val_test_split():
     with open('annotations.csv') as annotations_file, \
             open(f'{folder}/annotations_train.csv',
-                 'a',
+                 'w',
                  newline=''
                  ) as train_file, \
             open(f'{folder}/annotations_val.csv',
-                 'a',
+                 'w',
                  newline=''
                  ) as val_file, \
             open(f'{folder}/annotations_test.csv',
-                 'a',
+                 'w',
                  newline=''
                  ) as test_file:
 
@@ -35,15 +35,15 @@ def train_val_test_split():
 
         annotations = list(annotations_reader)
         annotations_length = len(annotations)
-        print("annotations_length", annotations_length)
+        # print("annotations_length", annotations_length)
 
         random.shuffle(annotations)
 
         num_of_test = int(math.ceil(test_ratio * annotations_length))
         num_of_val = num_of_test
         num_of_train = int(math.ceil(train_ratio * annotations_length))
-        print("num_of_val", num_of_val)
-        print("num_of_train", num_of_train)
+        # print("num_of_val", num_of_val)
+        # print("num_of_train", num_of_train)
 
         annotations_file.seek(0)
         test = []
@@ -51,7 +51,7 @@ def train_val_test_split():
         train = []
 
         for counter, row in enumerate(annotations):
-            print("counter", counter)
+            # print("counter", counter)
             if counter + 1 <= num_of_test:
                 # print('Test: ')
                 # print(', '.join(row))
@@ -68,13 +68,13 @@ def train_val_test_split():
         print("Number of lines in the annotations_train.csv: ", num_of_train)
         print("Number of lines in the annotations_val.csv: ", num_of_val)
 
-        print("\n")
-        print("Train: ")
-        [print(', '.join(row)) for row in train]
-        print("\n")
-        print("Validation: ")
-        [print(', '.join(row)) for row in val]
-        print("\n")
-        print("Test: ")
-        [print(', '.join(row)) for row in test]
-        print("\n")
+        # print("\n")
+        # print("Train: ")
+        # [print(', '.join(row)) for row in train]
+        # print("\n")
+        # print("Validation: ")
+        # [print(', '.join(row)) for row in val]
+        # print("\n")
+        # print("Test: ")
+        # [print(', '.join(row)) for row in test]
+        # print("\n")

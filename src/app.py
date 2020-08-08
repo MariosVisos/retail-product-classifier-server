@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from flask_uploads import configure_uploads, patch_request_class
 from dotenv import load_dotenv
 from flask_mail import Mail
-from flask_ngrok import run_with_ngrok
+# from flask_ngrok import run_with_ngrok
 
 
 from db import db
@@ -14,7 +14,7 @@ from resources.user import (
     UserRegister, UserLogin, User, TokenRefresh, UserLogout, ResetPassword
 )
 from resources.label import Label, LabelList
-from resources.dataset import Dataset, DatasetList, DatasetClassify
+from resources.dataset import Dataset, DatasetList, DatasetClassify, DatasetTrain
 from resources.image import ImageUpload, Image, ImageList
 from libs.image_helper import IMAGE_SET
 
@@ -23,7 +23,7 @@ app = Flask(__name__, static_url_path='', static_folder='../static')
 mail = Mail(app)
 
 load_dotenv(".env", verbose=True)
-run_with_ngrok(app)
+# run_with_ngrok(app)
 
 mail_settings = {
     "MAIL_SERVER": 'smtp.gmail.com',
@@ -139,6 +139,7 @@ def expired_token_callback():
 api.add_resource(Dataset, "/dataset/<string:name>")
 api.add_resource(DatasetList, "/datasets")
 api.add_resource(DatasetClassify, "/dataset/classify")
+api.add_resource(DatasetTrain, "/dataset/train/<int:id>")
 api.add_resource(Label, "/label/<string:name>")
 api.add_resource(LabelList, "/labels")
 api.add_resource(UserRegister, "/register")
@@ -155,4 +156,4 @@ api.add_resource(ImageList, "/images")
 
 if __name__ == "__main__":
     db.init_app(app)
-    app.run()
+    app.run(host="0.0.0.0")

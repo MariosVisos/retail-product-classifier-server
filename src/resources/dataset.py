@@ -1,9 +1,15 @@
 # import sys
 from flask_restful import Resource
 from models.dataset import DatasetModel
+from models.image import ImageModel
 import os
+import json
+import csv
 import subprocess
+import shutil
 from libs.image import crop_bounding_boxes
+from libs import annotations
+
 
 BLANK_ERROR = "'{}' cannot be blank."
 NAME_ALREADY_EXISTS = "A dataset with name '{}' already exists."
@@ -123,3 +129,49 @@ class DatasetClassify(Resource):
         #     return {"message": ERROR_INSERTING}, 500
 
         # return {"message": IMAGE_UPLOADED.format(image.name)}, 201
+
+
+class DatasetTrain(Resource):
+    def get(self, id: int):
+        dataset = DatasetModel.find_by_id(id)
+        labels = dataset.labels
+        labels = [label for label in labels.all()]
+        with open('annotations.csv', 'w', newline='') as csvfile, \
+            open('all_train_files_new.txt', 'w') as txtObj, \
+            open('../sku110k/object_detector_retinanet/keras_retinanet/bin/class_mappings.csv', 'a', newline='') as classMap:
+                for label in labels:
+                    classMapWriter = csv.writer(classMap)
+                    classMapWriter.writerow([label.id,label.id])
+                    images = ImageModel.find_by_label_id(label.id)
+                    for image in images:
+                        # shutil.copy(f'static/images/{image.name}', '../sku110k/images')
+                        meta_data = json.loads(image.meta_data)
+                        dimensions = json.loads(image.dimensions)
+                        bounding_box = meta_data['bounding_box']
+
+                        annotationswriter = csv.writer(csvfile)
+                        annotationswriter.writerow(
+                            [
+                                image.name,
+                                round(bounding_box['top_left']['x']),
+                                round(bounding_box['top_left']['y']),
+                                round(
+                                    bounding_box['bottom_right']['x']
+                                ),
+                                round(
+                                    bounding_box['bottom_right']['y']
+                                ),
+                                label.id,
+                                dimensions['width'],
+                                dimensions['height']
+                            ]
+                        )
+                        txtObj.write(f'static/images/{image.name}')
+                        txtObj.write('\n')
+        annotations.train_val_test_split()
+        os.environ['PYTHONPATH'] = "../sku110k"
+        subprocess.call(f'nohup env PYTHONPATH="../sku110k"; . ../sku110k/env/bin/activate; python -u ../sku110k/object_detector_retinanet/keras_retinanet/bin/train.py --weights ../sku110k/iou_resnet50_csv_06.h5 csv', shell=True)
+
+        
+        # crop_bounding_boxes()
+        return
